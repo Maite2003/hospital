@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { UserPlus, Activity } from 'lucide-react';
 import { crearInternacion, getListadoCamas } from '@/lib/actions';
-import { TipoListadoCamas } from '@/types';
+import { TipoListadoCamas } from '@/types/types';
 
 export default function GestionInternacionesPage() {
   const [camasDisponibles, setCamasDisponibles] = useState<TipoListadoCamas[]>([]);
