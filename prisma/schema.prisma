@@ -1,0 +1,240 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Persona {
+  nroDni   BigInt    @id @map("nro_dni")
+  nombre   String    @db.VarChar(50)
+  apellido String    @db.VarChar(50)
+  medico   Medico?
+  paciente Paciente?
+  usuario  Usuario?
+
+  @@map("persona")
+}
+
+model Usuario {
+  username        String   @id @db.VarChar(50)
+  password        String   @db.VarChar(50)
+  puedeModGuardia Boolean? @default(false) @map("puede_mod_guardia")
+  nroDni          BigInt   @unique @map("nro_dni")
+  persona         Persona  @relation(fields: [nroDni], references: [nroDni], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("usuario")
+}
+
+model Paciente {
+  nroDni        BigInt        @id @map("nro_dni")
+  sexo          String?       @db.Char(1)
+  fechaNac      DateTime      @map("fecha_nac") @db.Date
+  internaciones Internacion[]
+  persona       Persona       @relation(fields: [nroDni], references: [nroDni], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("paciente")
+}
+
+model Medico {
+  nroMatricula  BigInt          @id @map("nro_matricula")
+  fechaIngreso  DateTime        @map("fecha_ingreso") @db.Date
+  foto          Bytes
+  cuil          BigInt          @unique
+  cuit          BigInt          @unique
+  nroDni        BigInt          @unique @map("nro_dni")
+  internaciones Internacion[]
+  med_tiene_esp med_tiene_esp[]
+  persona       Persona         @relation(fields: [nroDni], references: [nroDni], onDelete: NoAction, onUpdate: NoAction)
+  recorrido     recorrido[]
+  vacacion      vacacion[]
+
+  @@map("medico")
+}
+
+model Sector {
+  id           Int          @id @default(autoincrement()) @map("id_sector")
+  nombreSector String       @unique @map("nombre_sector") @db.VarChar(50)
+  habitaciones Habitacion[]
+
+  @@map("sector")
+}
+
+model Habitacion {
+  id             Int              @id @default(autoincrement()) @map("id_habitacion")
+  piso           Int
+  orientacion    String?          @db.Char(1)
+  idSector       Int              @map("id_sector")
+  camas          Cama[]
+  sector         Sector           @relation(fields: [idSector], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  rond_tiene_hab rond_tiene_hab[]
+
+  @@map("habitacion")
+}
+
+model Cama {
+  id           Int               @default(autoincrement()) @map("id_cama")
+  idHabitacion Int               @map("id_habitacion")
+  estaLibre    Boolean?          @default(true) @map("esta_libre")
+  habitacion   Habitacion        @relation(fields: [idHabitacion], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  asignaciones InternacionCama[]
+
+  @@id([id, idHabitacion])
+  @@map("cama")
+}
+
+model Internacion {
+  id              Int               @id @default(autoincrement()) @map("id_internacion")
+  fechaHoraInicio DateTime          @map("fecha_hora_inicio") @db.Timestamp(6)
+  fechaHoraFin    DateTime?         @map("fecha_hora_fin") @db.Timestamp(6)
+  nroMatricula    BigInt            @map("nro_matricula")
+  nroDni          BigInt            @map("nro_dni")
+  comentarios     Comentario[]
+  paciente        Paciente          @relation(fields: [nroDni], references: [nroDni], onDelete: NoAction, onUpdate: NoAction)
+  medico          Medico            @relation(fields: [nroMatricula], references: [nroMatricula], onDelete: NoAction, onUpdate: NoAction)
+  asignaciones    InternacionCama[]
+
+  @@map("internacion")
+}
+
+model InternacionCama {
+  fechaHoraAsignacion DateTime    @map("fecha_hora_asignacion") @db.Timestamp(6)
+  idInternacion       Int         @map("id_internacion")
+  idHabitacion        Int         @map("id_habitacion")
+  idCama              Int         @map("id_cama")
+  cama                Cama        @relation(fields: [idCama, idHabitacion], references: [id, idHabitacion], onDelete: NoAction, onUpdate: NoAction)
+  internacion         Internacion @relation(fields: [idInternacion], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([fechaHoraAsignacion, idInternacion, idCama, idHabitacion])
+  @@map("internacion_cama")
+}
+
+model Comentario {
+  idInternacion Int         @map("id_internacion")
+  idComentario  Int         @default(autoincrement()) @map("id_comentario")
+  fechaHora     DateTime    @default(dbgenerated("CURRENT_DATE")) @map("fecha_hora") @db.Timestamp(6)
+  descripcion   String?
+  idRecorrido   Int         @map("id_recorrido")
+  internacion   Internacion @relation(fields: [idInternacion], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  recorrido     recorrido   @relation(fields: [idRecorrido], references: [id_recorrido], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([idInternacion, idComentario])
+  @@map("comentario")
+}
+
+model especialidad {
+  id_especialidad                 Int                               @id @default(autoincrement())
+  nombre                          String                            @unique @db.VarChar(50)
+  especialidad_tiene_turnoguardia especialidad_tiene_turnoguardia[]
+  med_tiene_esp                   med_tiene_esp[]
+}
+
+model especialidad_tiene_turnoguardia {
+  id_especialidad  Int
+  id_turno_guardia Int
+  especialidad     especialidad @relation(fields: [id_especialidad], references: [id_especialidad], onDelete: NoAction, onUpdate: NoAction)
+  turnoguardia     turnoguardia @relation(fields: [id_turno_guardia], references: [id_turno_guardia], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id_especialidad, id_turno_guardia])
+}
+
+model guardia {
+  id_guardia                 Int                          @id @default(autoincrement())
+  fecha                      DateTime                     @db.Date
+  id_especialidad            Int
+  nro_matricula              BigInt
+  med_tiene_esp              med_tiene_esp                @relation(fields: [id_especialidad, nro_matricula], references: [id_especialidad, nro_matricula], onDelete: NoAction, onUpdate: NoAction)
+  guardia_tiene_turnoguardia guardia_tiene_turnoguardia[]
+}
+
+model guardia_tiene_turnoguardia {
+  id_guardia       Int
+  id_turno_guardia Int
+  guardia          guardia      @relation(fields: [id_guardia], references: [id_guardia], onDelete: NoAction, onUpdate: NoAction)
+  turnoguardia     turnoguardia @relation(fields: [id_turno_guardia], references: [id_turno_guardia], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id_guardia, id_turno_guardia])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model med_tiene_esp {
+  id_especialidad  Int
+  nro_matricula    BigInt
+  max_cant_guardia Int?
+  guardia          guardia[]
+  especialidad     especialidad @relation(fields: [id_especialidad], references: [id_especialidad], onDelete: NoAction, onUpdate: NoAction)
+  medico           Medico       @relation(fields: [nro_matricula], references: [nroMatricula], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id_especialidad, nro_matricula])
+}
+
+model recorrido {
+  id_recorrido  Int          @id @default(autoincrement())
+  fecha         DateTime     @db.Date
+  id_ronda      Int
+  nro_matricula BigInt
+  comentario    Comentario[]
+  ronda         ronda        @relation(fields: [id_ronda], references: [id_ronda], onDelete: NoAction, onUpdate: NoAction)
+  medico        Medico       @relation(fields: [nro_matricula], references: [nroMatricula], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model rond_tiene_hab {
+  id_ronda      Int
+  id_habitacion Int
+  habitacion    Habitacion @relation(fields: [id_habitacion], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  ronda         ronda      @relation(fields: [id_ronda], references: [id_ronda], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id_ronda, id_habitacion])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model ronda {
+  id_ronda               Int                      @id @default(autoincrement())
+  dia                    String                   @db.Char(1)
+  recorrido              recorrido[]
+  rond_tiene_hab         rond_tiene_hab[]
+  ronda_tiene_turnoronda ronda_tiene_turnoronda[]
+}
+
+model ronda_tiene_turnoronda {
+  id_ronda       Int
+  id_turno_ronda Int
+  ronda          ronda      @relation(fields: [id_ronda], references: [id_ronda], onDelete: NoAction, onUpdate: NoAction)
+  turnoronda     turnoronda @relation(fields: [id_turno_ronda], references: [id_turno_ronda], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id_ronda, id_turno_ronda])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model turnoguardia {
+  id_turno_guardia                Int                               @id @default(autoincrement())
+  hora_inicio                     DateTime                          @db.Time(6)
+  hora_fin                        DateTime                          @db.Time(6)
+  especialidad_tiene_turnoguardia especialidad_tiene_turnoguardia[]
+  guardia_tiene_turnoguardia      guardia_tiene_turnoguardia[]
+
+  @@unique([hora_inicio, hora_fin], map: "uq_horario_guardia")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model turnoronda {
+  id_turno_ronda         Int                      @id @default(autoincrement())
+  hora_inicio            DateTime                 @db.Time(6)
+  hora_fin               DateTime                 @db.Time(6)
+  ronda_tiene_turnoronda ronda_tiene_turnoronda[]
+
+  @@unique([hora_inicio, hora_fin], map: "uq_horario_ronda")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model vacacion {
+  nro_matricula BigInt
+  id_vacacion   Int      @default(autoincrement())
+  fecha_inicio  DateTime @db.Date
+  fecha_fin     DateTime @db.Date
+  medico        Medico   @relation(fields: [nro_matricula], references: [nroMatricula], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([nro_matricula, id_vacacion])
+}

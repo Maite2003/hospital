@@ -5,7 +5,7 @@
 CREATE TABLE PERSONA (
     nro_dni BIGINT PRIMARY KEY,
     CHECK (
-        nro_dni BETWEEN 1000000 AND 99999999
+        nro_dni BETWEEN 10000 AND 99999999
     ),
     nombre VARCHAR(50) NOT NULL,
     apellido VARCHAR(50) NOT NULL
@@ -69,11 +69,6 @@ EXECUTE FUNCTION validar_medico();
 CREATE TABLE ESPECIALIDAD (
     id_especialidad SERIAL PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL UNIQUE
-
--- TODO --
--- CONSULTAR SI DEBERIA SER UNIQUE EL NOMBRE --
--- NO LO DECLARAMOS ASI--
-
 );
 
 -- ===========================================
@@ -103,42 +98,13 @@ CREATE TABLE TURNOGUARDIA (
     id_turno_guardia SERIAL PRIMARY KEY,
     hora_inicio TIME NOT NULL,
     hora_fin TIME NOT NULL,
-    CHECK (hora_fin > hora_inicio),
+    CHECK (hora_fin <> hora_inicio),
     CONSTRAINT uq_horario_guardia UNIQUE (hora_inicio, hora_fin)
 );
-
-CREATE OR REPLACE FUNCTION evitar_solapamiento_turno_guardia()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM TURNOGUARDIA
-        WHERE id_turno_guardia <> NEW.id_turno_guardia
-          AND NOT (NEW.hora_fin <= hora_inicio OR NEW.hora_inicio >= hora_fin)
-    ) THEN
-        RAISE EXCEPTION 'El turno se solapa con otro existente';
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_evitar_solapamiento_turno_guardia
-BEFORE INSERT OR UPDATE ON TURNOGUARDIA
-FOR EACH ROW
-EXECUTE FUNCTION evitar_solapamiento_turno_guardia();
-
--- NO LO DECLARAMOS ASI--
--- TODO --
--- LOS TURNOS GUARDIAS SE PODRIAN SOLAPAR ???? --
 
 CREATE TABLE GUARDIA (
     id_guardia SERIAL PRIMARY KEY,
     fecha DATE NOT NULL,
-    -- TODO --
-    -- CONSULTAR --
-    -- PODRIAMOS FORZAR QUE SEA FECHA FUTURA, --
-    -- PERO SI SE OLVIDAN ALGUN DIA ES UN PROBLEMA --
     id_especialidad INT NOT NULL,
     nro_matricula BIGINT NOT NULL,
     FOREIGN KEY (
@@ -149,6 +115,95 @@ CREATE TABLE GUARDIA (
         nro_matricula
     )
 );
+-- AGREGUE UN SERIAL PARA QUE NO HAYA CONFLICTOS EN LA PK
+CREATE TABLE USUARIO_MODIFICA_GUARDIA (
+    id_modificacion SERIAL,
+    username VARCHAR(50) NOT NULL,
+    id_guardia INT NOT NULL,
+    fecha_hora TIMESTAMP NOT NULL,
+    descripcion TEXT,
+    PRIMARY KEY (id_modificacion, username, id_guardia),
+    FOREIGN KEY (username) REFERENCES USUARIO (username),
+    FOREIGN KEY (id_guardia) REFERENCES GUARDIA (id_guardia)
+);
+
+CREATE OR REPLACE FUNCTION trg_registrar_modificacion_guardia_fn()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_username VARCHAR(50);
+    v_descripcion TEXT;
+BEGIN
+    v_username := current_user;
+
+    IF TG_OP = 'INSERT' THEN
+        v_descripcion := 'Guardia creada: fecha=' || NEW.fecha ||
+                         ', especialidad=' || NEW.id_especialidad ||
+                         ', matricula=' || NEW.nro_matricula;
+
+        INSERT INTO USUARIO_MODIFICA_GUARDIA (username, id_guardia, fecha_hora, descripcion)
+        VALUES (v_username, NEW.id_guardia, NOW(), v_descripcion);
+
+        RETURN NEW;
+
+    ELSIF TG_OP = 'UPDATE' THEN
+        v_descripcion := 'Guardia modificada: ' ||
+                         'fecha=' || OLD.fecha || '→' || NEW.fecha ||
+                         ', especialidad=' || OLD.id_especialidad || '→' || NEW.id_especialidad ||
+                         ', matricula=' || OLD.nro_matricula || '→' || NEW.nro_matricula;
+
+        INSERT INTO USUARIO_MODIFICA_GUARDIA (username, id_guardia, fecha_hora, descripcion)
+        VALUES (v_username, NEW.id_guardia, NOW(), v_descripcion);
+
+        RETURN NEW;
+
+    ELSIF TG_OP = 'DELETE' THEN
+        v_descripcion := 'Guardia eliminada: fecha=' || OLD.fecha ||
+                         ', especialidad=' || OLD.id_especialidad ||
+                         ', matricula=' || OLD.nro_matricula;
+
+        INSERT INTO USUARIO_MODIFICA_GUARDIA (username, id_guardia, fecha_hora, descripcion)
+        VALUES (v_username, OLD.id_guardia, NOW(), v_descripcion);
+
+        RETURN OLD;
+    END IF;
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_registrar_modificacion_guardia
+AFTER INSERT OR UPDATE OR DELETE ON GUARDIA
+FOR EACH ROW
+EXECUTE FUNCTION trg_registrar_modificacion_guardia_fn();
+
+CREATE OR REPLACE FUNCTION trg_registrar_modificacion_turnos_fn()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_username VARCHAR(50);
+    v_descripcion TEXT;
+    v_id_guardia INT;
+BEGIN
+    v_username := current_user;
+    v_id_guardia := COALESCE(NEW.id_guardia, OLD.id_guardia);
+
+    IF TG_OP = 'INSERT' THEN
+        v_descripcion := 'Turno agregado: turno=' || NEW.id_turno_guardia;
+
+        INSERT INTO USUARIO_MODIFICA_GUARDIA (username, id_guardia, fecha_hora, descripcion)
+        VALUES (v_username, v_id_guardia, NOW(), v_descripcion);
+
+        RETURN NEW;
+
+    ELSIF TG_OP = 'DELETE' THEN
+        v_descripcion := 'Turno eliminado: turno=' || OLD.id_turno_guardia;
+
+        INSERT INTO USUARIO_MODIFICA_GUARDIA (username, id_guardia, fecha_hora, descripcion)
+        VALUES (v_username, v_id_guardia, NOW(), v_descripcion);
+
+        RETURN OLD;
+    END IF;
+
+END;
+$$ LANGUAGE plpgsql;
 
 -- ===========================================
 -- TURNOS DE RONDA Y RONDAS
@@ -161,31 +216,6 @@ CREATE TABLE TURNORONDA (
     CHECK (hora_fin > hora_inicio),
     CONSTRAINT uq_horario_ronda UNIQUE (hora_inicio, hora_fin)
 );
-
-CREATE OR REPLACE FUNCTION evitar_solapamiento_turno_ronda()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM TURNORONDA
-        WHERE id_turno_ronda <> NEW.id_turno_ronda
-          AND NOT (NEW.hora_fin <= hora_inicio OR NEW.hora_inicio >= hora_fin)
-    ) THEN
-        RAISE EXCEPTION 'El turno se solapa con otro existente';
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_evitar_solapamiento_turno_ronda
-BEFORE INSERT OR UPDATE ON TURNORONDA
-FOR EACH ROW
-EXECUTE FUNCTION evitar_solapamiento_turno_ronda();
-
--- NO LO DECLARAMOS ASI--
--- TODO --
--- LOS TURNOS RONDA SE PODRIAN SOLAPAR ???? --
 
 CREATE TABLE RONDA (
     id_ronda SERIAL PRIMARY KEY,
@@ -218,11 +248,6 @@ CREATE TABLE RONDA_TIENE_TURNORONDA (
 CREATE TABLE SECTOR (
     id_sector SERIAL PRIMARY KEY,
     nombre_sector VARCHAR(50) NOT NULL UNIQUE
-
--- TODO --
--- CONSULTAR SI DEBERIA SER UNIQUE EL NOMBRE --
--- NO LO DECLARAMOS ASI--
-
 );
 
 CREATE TABLE HABITACION (
@@ -244,10 +269,6 @@ CREATE TABLE CAMA (
     PRIMARY KEY (id_cama, id_habitacion),
     FOREIGN KEY (id_habitacion) REFERENCES HABITACION (id_habitacion)
 );
-
--- TODO --
--- PROBLEMA DE SEGURIDAD, SI ALGUIEN ACTUALIZA --
--- ESTA_LIBRE A MANO PUEDE ROMPER LA BD --
 
 -- ===========================================
 -- INTERNACIONES Y RELACIONES
@@ -298,9 +319,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_liberar_cama_fin_internacion
 AFTER UPDATE ON INTERNACION
 FOR EACH ROW
--- TODO --
---  CHEQUEAR PORQUE SI YO ASIGNO FECHA DE FINALIZACION CUANDO LO CREO ESTO NUNCA SE DISPARARIA--
--- ASI COMO ESTA FUNCIONA PERO NO PARA TODOS LOS CASOS --
 EXECUTE FUNCTION liberar_ultima_cama_internacion();
 
 CREATE TABLE INTERNACION_CAMA (
@@ -421,9 +439,6 @@ EXECUTE FUNCTION ocupar_cama_trigger();
 CREATE TABLE RECORRIDO (
     id_recorrido SERIAL PRIMARY KEY,
     fecha DATE NOT NULL,
-    -- TODO --
-    -- PODRIAMOS FORZAR QUE SEA FECHA FUTURA, --
-    -- PERO SI SE OLVIDAN ALGUN DIA ES UN PROBLEMA --
     id_ronda INT NOT NULL,
     nro_matricula BIGINT NOT NULL,
     FOREIGN KEY (id_ronda) REFERENCES RONDA (id_ronda),
@@ -446,7 +461,8 @@ CREATE TABLE COMENTARIO (
     id_internacion INT NOT NULL,
     id_comentario SERIAL,
     fecha_hora TIMESTAMP NOT NULL DEFAULT CURRENT_DATE,
-    CHECK (fecha_hora <= CURRENT_DATE) descripcion TEXT,
+    CHECK (fecha_hora <= CURRENT_DATE), 
+    descripcion TEXT,
     id_recorrido INT NOT NULL,
     PRIMARY KEY (id_internacion, id_comentario),
     FOREIGN KEY (id_internacion) REFERENCES INTERNACION (id_internacion),
@@ -496,6 +512,11 @@ CREATE TABLE GUARDIA_TIENE_TURNOGUARDIA (
     FOREIGN KEY (id_guardia) REFERENCES GUARDIA (id_guardia),
     FOREIGN KEY (id_turno_guardia) REFERENCES TURNOGUARDIA (id_turno_guardia)
 );
+
+CREATE TRIGGER trg_registrar_modificacion_turnos
+AFTER INSERT OR DELETE ON GUARDIA_TIENE_TURNOGUARDIA
+FOR EACH ROW
+EXECUTE FUNCTION trg_registrar_modificacion_turnos_fn();
 
 CREATE TABLE ESPECIALIDAD_TIENE_TURNOGUARDIA (
     id_especialidad INT NOT NULL,
