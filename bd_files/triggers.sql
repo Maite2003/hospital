@@ -34,97 +34,6 @@ FOR EACH ROW
 EXECUTE FUNCTION validar_medico();
 
 -- ===================================================================
--- Triggers para registrar modificaciones en la tabla GUARDIA
--- Recibe el usuario actual y registra la operación (INSERT, UPDATE, DELETE)
--- en la tabla USUARIO_MODIFICA_GUARDIA con una descripción de la modificación.
-CREATE OR REPLACE FUNCTION trg_registrar_modificacion_guardia_fn()
-RETURNS TRIGGER AS $$
-DECLARE
-    v_username VARCHAR(50);
-    v_descripcion TEXT;
-BEGIN
-    v_username := current_user;
-
-    IF TG_OP = 'INSERT' THEN
-        v_descripcion := 'Guardia creada: fecha=' || NEW.fecha ||
-                         ', especialidad=' || NEW.id_especialidad ||
-                         ', matricula=' || NEW.nro_matricula;
-
-        INSERT INTO USUARIO_MODIFICA_GUARDIA (username, id_guardia, fecha_hora, descripcion)
-        VALUES (v_username, NEW.id_guardia, NOW(), v_descripcion);
-
-        RETURN NEW;
-
-    ELSIF TG_OP = 'UPDATE' THEN
-        v_descripcion := 'Guardia modificada: ' ||
-                         'fecha=' || OLD.fecha || '→' || NEW.fecha ||
-                         ', especialidad=' || OLD.id_especialidad || '→' || NEW.id_especialidad ||
-                         ', matricula=' || OLD.nro_matricula || '→' || NEW.nro_matricula;
-
-        INSERT INTO USUARIO_MODIFICA_GUARDIA (username, id_guardia, fecha_hora, descripcion)
-        VALUES (v_username, NEW.id_guardia, NOW(), v_descripcion);
-
-        RETURN NEW;
-
-    ELSIF TG_OP = 'DELETE' THEN
-        v_descripcion := 'Guardia eliminada: fecha=' || OLD.fecha ||
-                         ', especialidad=' || OLD.id_especialidad ||
-                         ', matricula=' || OLD.nro_matricula;
-
-        INSERT INTO USUARIO_MODIFICA_GUARDIA (username, id_guardia, fecha_hora, descripcion)
-        VALUES (v_username, OLD.id_guardia, NOW(), v_descripcion);
-
-        RETURN OLD;
-    END IF;
-
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_registrar_modificacion_guardia
-AFTER INSERT OR UPDATE OR DELETE ON GUARDIA
-FOR EACH ROW
-EXECUTE FUNCTION trg_registrar_modificacion_guardia_fn();
-
--- ===================================================================
--- Triggers para registrar modificaciones en la tabla GUARDIA_TIENE_TURNOGUARDIA
--- Recibe el usuario actual y registra la operación (INSERT, DELETE)
--- en la tabla USUARIO_MODIFICA_GUARDIA con una descripción de la modificación
-CREATE OR REPLACE FUNCTION trg_registrar_modificacion_turnos_fn()
-RETURNS TRIGGER AS $$
-DECLARE
-    v_username VARCHAR(50);
-    v_descripcion TEXT;
-    v_id_guardia INT;
-BEGIN
-    v_username := current_user;
-    v_id_guardia := COALESCE(NEW.id_guardia, OLD.id_guardia);
-
-    IF TG_OP = 'INSERT' THEN
-        v_descripcion := 'Turno agregado: turno=' || NEW.id_turno_guardia;
-
-        INSERT INTO USUARIO_MODIFICA_GUARDIA (username, id_guardia, fecha_hora, descripcion)
-        VALUES (v_username, v_id_guardia, NOW(), v_descripcion);
-
-        RETURN NEW;
-
-    ELSIF TG_OP = 'DELETE' THEN
-        v_descripcion := 'Turno eliminado: turno=' || OLD.id_turno_guardia;
-
-        INSERT INTO USUARIO_MODIFICA_GUARDIA (username, id_guardia, fecha_hora, descripcion)
-        VALUES (v_username, v_id_guardia, NOW(), v_descripcion);
-
-        RETURN OLD;
-    END IF;
-
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_registrar_modificacion_turnos
-AFTER INSERT OR DELETE ON GUARDIA_TIENE_TURNOGUARDIA
-FOR EACH ROW
-EXECUTE FUNCTION trg_registrar_modificacion_turnos_fn();
-
--- ===================================================================
 -- Trigger para liberar la última cama asignada a una internación
 -- cuando se le asigna una fecha de finalización a la internación.
 CREATE OR REPLACE FUNCTION liberar_ultima_cama_internacion()
@@ -287,6 +196,108 @@ CREATE TRIGGER trg_validar_vacacion
 BEFORE INSERT OR UPDATE ON VACACION
 FOR EACH ROW
 EXECUTE FUNCTION validar_vacacion();
+
+
+
+
+
+
+
+
+
+
+
+
+-- ===================================================================
+-- Triggers para registrar modificaciones en la tabla GUARDIA
+-- Recibe el usuario actual y registra la operación (INSERT, UPDATE, DELETE)
+-- en la tabla USUARIO_MODIFICA_GUARDIA con una descripción de la modificación.
+CREATE OR REPLACE FUNCTION trg_registrar_modificacion_guardia_fn()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_username VARCHAR(50);
+    v_descripcion TEXT;
+BEGIN
+    v_username := current_user;
+
+    IF TG_OP = 'INSERT' THEN
+        v_descripcion := 'Guardia creada: fecha=' || NEW.fecha ||
+                         ', especialidad=' || NEW.id_especialidad ||
+                         ', matricula=' || NEW.nro_matricula;
+
+        INSERT INTO USUARIO_MODIFICA_GUARDIA (username, id_guardia, fecha_hora, descripcion)
+        VALUES (v_username, NEW.id_guardia, NOW(), v_descripcion);
+
+        RETURN NEW;
+
+    ELSIF TG_OP = 'UPDATE' THEN
+        v_descripcion := 'Guardia modificada: ' ||
+                         'fecha=' || OLD.fecha || '→' || NEW.fecha ||
+                         ', especialidad=' || OLD.id_especialidad || '→' || NEW.id_especialidad ||
+                         ', matricula=' || OLD.nro_matricula || '→' || NEW.nro_matricula;
+
+        INSERT INTO USUARIO_MODIFICA_GUARDIA (username, id_guardia, fecha_hora, descripcion)
+        VALUES (v_username, NEW.id_guardia, NOW(), v_descripcion);
+
+        RETURN NEW;
+
+    ELSIF TG_OP = 'DELETE' THEN
+        v_descripcion := 'Guardia eliminada: fecha=' || OLD.fecha ||
+                         ', especialidad=' || OLD.id_especialidad ||
+                         ', matricula=' || OLD.nro_matricula;
+
+        INSERT INTO USUARIO_MODIFICA_GUARDIA (username, id_guardia, fecha_hora, descripcion)
+        VALUES (v_username, OLD.id_guardia, NOW(), v_descripcion);
+
+        RETURN OLD;
+    END IF;
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_registrar_modificacion_guardia
+AFTER INSERT OR UPDATE OR DELETE ON GUARDIA
+FOR EACH ROW
+EXECUTE FUNCTION trg_registrar_modificacion_guardia_fn();
+
+-- ===================================================================
+-- Triggers para registrar modificaciones en la tabla GUARDIA_TIENE_TURNOGUARDIA
+-- Recibe el usuario actual y registra la operación (INSERT, DELETE)
+-- en la tabla USUARIO_MODIFICA_GUARDIA con una descripción de la modificación
+CREATE OR REPLACE FUNCTION trg_registrar_modificacion_turnos_fn()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_username VARCHAR(50);
+    v_descripcion TEXT;
+    v_id_guardia INT;
+BEGIN
+    v_username := current_user;
+    v_id_guardia := COALESCE(NEW.id_guardia, OLD.id_guardia);
+
+    IF TG_OP = 'INSERT' THEN
+        v_descripcion := 'Turno agregado: turno=' || NEW.id_turno_guardia;
+
+        INSERT INTO USUARIO_MODIFICA_GUARDIA (username, id_guardia, fecha_hora, descripcion)
+        VALUES (v_username, v_id_guardia, NOW(), v_descripcion);
+
+        RETURN NEW;
+
+    ELSIF TG_OP = 'DELETE' THEN
+        v_descripcion := 'Turno eliminado: turno=' || OLD.id_turno_guardia;
+
+        INSERT INTO USUARIO_MODIFICA_GUARDIA (username, id_guardia, fecha_hora, descripcion)
+        VALUES (v_username, v_id_guardia, NOW(), v_descripcion);
+
+        RETURN OLD;
+    END IF;
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_registrar_modificacion_turnos
+AFTER INSERT OR DELETE ON GUARDIA_TIENE_TURNOGUARDIA
+FOR EACH ROW
+EXECUTE FUNCTION trg_registrar_modificacion_turnos_fn();
 
 -- ===================================================================
 -- Trigger para asignar automáticamente un id_cama único por habitación
