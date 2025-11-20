@@ -1,23 +1,23 @@
 
 export interface Persona {
-    nroDni: number,
+    nroDni: string,
     nombre: string,
     apellido: string
 }
 
 export interface Paciente {
-    nroDni: number,
+    nroDni: string,
     sexo: string,
     fechaNac: Date | string,
 }
 
 export interface Medico {
-    nroMatricula: number,
+    nroMatricula: string,
     fechaIngreso: Date | string,
     foto: string,
-    cuil: number,
-    cuit: number,
-    nroDni: number
+    cuil: string,
+    cuit: string,
+    nroDni: string
 }
 
 export interface Comentario {
@@ -32,15 +32,15 @@ export interface Recorrido {
     id_recorrido: number,
     fecha: Date | string,
     id_ronda: number,
-    nro_matricula: number,
+    nro_matricula: string,
 }
 
 export interface Internacion {
     id: number,
     fechaHoraInicio: Date | string,
     fechaHoraFin: Date | string,
-    nroMatricula: number,
-    nroDni: number,
+    nroMatricula: string,
+    nroDni: string,
 }
 
 export interface Cama {
@@ -70,7 +70,7 @@ export interface Usuario {
     username: string,
     password: string,
     puedeModGuardia: boolean,
-    nroDni: number,
+    nroDni: string,
 }
 
 export interface UsuarioModificaGuardia {
@@ -84,7 +84,7 @@ export interface Guardia {
     id_guardia: number,
     fecha: Date | string,
     id_especialidad: number,
-    nro_matricula: number,
+    nro_matricula: string,
 }
 
 export interface RelacionGuardiaYTurno {
@@ -107,7 +107,7 @@ export interface TipoListadoModificaciones {
   descripcion: string;
   fecha_guardia: Date | string;
   especialidad: string;
-  nro_matricula: number; 
+  nro_matricula: string; 
   nombre_medico: string;
   turnos: TurnoGuardia[]; 
 }
@@ -138,13 +138,13 @@ export interface TipoFilasComentariosPorInternacion {
     id_internacion: number;
     fecha_hora_inicio_int: Date | string;
     fecha_hora_fin_int: Date | string | null;
-    nro_dni: number;
+    nro_dni: string;
     nombre: string;
     apellido: string;
     id_comentario: number;
     fecha_hora_comentario: Date | string;
     descripcion: string;
-    nro_matricula: number;
+    nro_matricula: string;
     nombre_doctor: string;
 }
 
@@ -152,7 +152,7 @@ export interface TipoComentario {
     idComentario: number;
     fechaHora: Date | string;
     descripcion: string;
-    nroMatricula: number;
+    nroMatricula: string;
     nombre_doctor: string;
 }
 
@@ -160,7 +160,7 @@ export interface TipoListadoComentarios {
   idInternacion: number;
   fechaHoraInicio: Date | string;
   fechaHoraFin: Date | string | null;
-  nroDni: number; 
+  nroDni: string; 
   nombre: string;
   apellido: string;
   comentarios: TipoComentario[]
@@ -168,8 +168,8 @@ export interface TipoListadoComentarios {
 
 // INTERNACIONES TRANSACCIONES
  export interface crearInternacion {
-    dniPaciente: number;
-    matriculaMedico: number;
+    dniPaciente: string;
+    matriculaMedico: string;
     camaId: number;
     habitacionId: number;
      fechaIngreso: Date | string;
@@ -177,7 +177,7 @@ export interface TipoListadoComentarios {
 
 export interface editarInternacion {
     idInternacion: number,
-    matriculaMedico?: number;
+    matriculaMedico?: string;
     camaId?: number;
     habitacionId?: number;
     fechaSalida?: Date | string;
