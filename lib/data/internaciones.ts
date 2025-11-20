@@ -1,14 +1,9 @@
 import {prisma} from "@/lib/prisma";
+import { crearInternacion as crearInternacionProps } from '@/types/types';
 
 // Crear
 
-export async function crearInternacion(data: {
-  dniPaciente: number;
-  matriculaMedico: number;
-  camaId: number;
-  habitacionId: number;
-  fechaIngreso: string;
-}) {
+export async function crearInternacion(data: crearInternacionProps) {
   try {
     // 1. Buscar paciente
     const paciente = await prisma.paciente.findUnique({

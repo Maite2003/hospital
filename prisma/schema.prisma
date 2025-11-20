@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Persona {
-  nroDni   BigInt    @id @map("nro_dni")
+  nroDni   String    @id @map("nro_dni") @db.VarChar(8)
   nombre   String    @db.VarChar(50)
   apellido String    @db.VarChar(50)
   medico   Medico?
@@ -19,17 +19,18 @@ model Persona {
 }
 
 model Usuario {
-  username        String   @id @db.VarChar(50)
-  password        String   @db.VarChar(50)
-  puedeModGuardia Boolean? @default(false) @map("puede_mod_guardia")
-  nroDni          BigInt   @unique @map("nro_dni")
-  persona         Persona  @relation(fields: [nroDni], references: [nroDni], onDelete: NoAction, onUpdate: NoAction)
+  username                 String                     @id @db.VarChar(50)
+  password                 String                     @db.VarChar(50)
+  puedeModGuardia          Boolean?                   @default(false) @map("puede_mod_guardia")
+  nroDni                   String                     @unique @map("nro_dni") @db.VarChar(8)
+  persona                  Persona                    @relation(fields: [nroDni], references: [nroDni], onDelete: NoAction, onUpdate: NoAction)
+  usuario_modifica_guardia usuario_modifica_guardia[]
 
   @@map("usuario")
 }
 
 model Paciente {
-  nroDni        BigInt        @id @map("nro_dni")
+  nroDni        String        @id @map("nro_dni") @db.VarChar(8)
   sexo          String?       @db.Char(1)
   fechaNac      DateTime      @map("fecha_nac") @db.Date
   internaciones Internacion[]
@@ -39,12 +40,12 @@ model Paciente {
 }
 
 model Medico {
-  nroMatricula  BigInt          @id @map("nro_matricula")
+  nroMatricula  String          @id @map("nro_matricula") @db.VarChar(4)
   fechaIngreso  DateTime        @map("fecha_ingreso") @db.Date
   foto          Bytes
-  cuil          BigInt          @unique
-  cuit          BigInt          @unique
-  nroDni        BigInt          @unique @map("nro_dni")
+  cuil          String          @unique @db.VarChar(11)
+  cuit          String          @unique @db.VarChar(11)
+  nroDni        String          @unique @map("nro_dni") @db.VarChar(8)
   internaciones Internacion[]
   med_tiene_esp med_tiene_esp[]
   persona       Persona         @relation(fields: [nroDni], references: [nroDni], onDelete: NoAction, onUpdate: NoAction)
@@ -65,7 +66,7 @@ model Sector {
 model Habitacion {
   id             Int              @id @default(autoincrement()) @map("id_habitacion")
   piso           Int
-  orientacion    String?          @db.Char(1)
+  orientacion    String           @db.Char(1)
   idSector       Int              @map("id_sector")
   camas          Cama[]
   sector         Sector           @relation(fields: [idSector], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -75,9 +76,9 @@ model Habitacion {
 }
 
 model Cama {
-  id           Int               @default(autoincrement()) @map("id_cama")
+  id           Int               @map("id_cama")
   idHabitacion Int               @map("id_habitacion")
-  estaLibre    Boolean?          @default(true) @map("esta_libre")
+  estaLibre    Boolean           @default(true) @map("esta_libre")
   habitacion   Habitacion        @relation(fields: [idHabitacion], references: [id], onDelete: NoAction, onUpdate: NoAction)
   asignaciones InternacionCama[]
 
@@ -89,8 +90,8 @@ model Internacion {
   id              Int               @id @default(autoincrement()) @map("id_internacion")
   fechaHoraInicio DateTime          @map("fecha_hora_inicio") @db.Timestamp(6)
   fechaHoraFin    DateTime?         @map("fecha_hora_fin") @db.Timestamp(6)
-  nroMatricula    BigInt            @map("nro_matricula")
-  nroDni          BigInt            @map("nro_dni")
+  nroMatricula    String            @map("nro_matricula") @db.VarChar(4)
+  nroDni          String            @map("nro_dni") @db.VarChar(8)
   comentarios     Comentario[]
   paciente        Paciente          @relation(fields: [nroDni], references: [nroDni], onDelete: NoAction, onUpdate: NoAction)
   medico          Medico            @relation(fields: [nroMatricula], references: [nroMatricula], onDelete: NoAction, onUpdate: NoAction)
@@ -144,9 +145,10 @@ model guardia {
   id_guardia                 Int                          @id @default(autoincrement())
   fecha                      DateTime                     @db.Date
   id_especialidad            Int
-  nro_matricula              BigInt
+  nro_matricula              String                       @db.VarChar(4)
   med_tiene_esp              med_tiene_esp                @relation(fields: [id_especialidad, nro_matricula], references: [id_especialidad, nro_matricula], onDelete: NoAction, onUpdate: NoAction)
   guardia_tiene_turnoguardia guardia_tiene_turnoguardia[]
+  usuario_modifica_guardia   usuario_modifica_guardia[]
 }
 
 model guardia_tiene_turnoguardia {
@@ -161,7 +163,7 @@ model guardia_tiene_turnoguardia {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model med_tiene_esp {
   id_especialidad  Int
-  nro_matricula    BigInt
+  nro_matricula    String       @db.VarChar(4)
   max_cant_guardia Int?
   guardia          guardia[]
   especialidad     especialidad @relation(fields: [id_especialidad], references: [id_especialidad], onDelete: NoAction, onUpdate: NoAction)
@@ -174,7 +176,7 @@ model recorrido {
   id_recorrido  Int          @id @default(autoincrement())
   fecha         DateTime     @db.Date
   id_ronda      Int
-  nro_matricula BigInt
+  nro_matricula String       @db.VarChar(8)
   comentario    Comentario[]
   ronda         ronda        @relation(fields: [id_ronda], references: [id_ronda], onDelete: NoAction, onUpdate: NoAction)
   medico        Medico       @relation(fields: [nro_matricula], references: [nroMatricula], onDelete: NoAction, onUpdate: NoAction)
@@ -230,11 +232,23 @@ model turnoronda {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model vacacion {
-  nro_matricula BigInt
+  nro_matricula String   @db.VarChar(8)
   id_vacacion   Int      @default(autoincrement())
   fecha_inicio  DateTime @db.Date
   fecha_fin     DateTime @db.Date
   medico        Medico   @relation(fields: [nro_matricula], references: [nroMatricula], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([nro_matricula, id_vacacion])
+}
+
+model usuario_modifica_guardia {
+  id_modificacion Int      @default(autoincrement())
+  username        String   @db.VarChar(50)
+  id_guardia      Int
+  fecha_hora      DateTime @db.Timestamp(6)
+  descripcion     String?
+  guardia         guardia  @relation(fields: [id_guardia], references: [id_guardia], onDelete: NoAction, onUpdate: NoAction)
+  usuario         Usuario  @relation(fields: [username], references: [username], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id_modificacion, username, id_guardia])
 }

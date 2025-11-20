@@ -2,46 +2,6 @@
 -- LISTADO CAMAS DISPONIBLES
 -- ===========================================
 
-/* CREATE OR REPLACE FUNCTION listar_cantidad_camas_libres()
-RETURNS TABLE(
-    nombre_sector VARCHAR,
-    cantidad_camas_libres INT
-) AS $$
-BEGIN
-    RETURN QUERY
-    SELECT s.nombre_sector,
-           COUNT(*) AS cantidad_camas_libres
-    FROM SECTOR s
-    JOIN HABITACION h ON h.id_sector = s.id_sector
-    JOIN CAMA c ON c.id_habitacion = h.id_habitacion
-    WHERE c.esta_libre = TRUE
-    GROUP BY s.nombre_sector
-    ORDER BY s.nombre_sector;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION listar_detalle_camas_libres()
-RETURNS TABLE(
-    nombre_sector VARCHAR,
-    id_habitacion INT,
-    id_cama INT,
-    esta_libre BOOLEAN
-) AS $$
-BEGIN
-    RETURN QUERY
-    SELECT s.nombre_sector,
-           h.id_habitacion,
-           c.id_cama,
-           c.esta_libre
-    FROM SECTOR s
-    JOIN HABITACION h ON h.id_sector = s.id_sector
-    JOIN CAMA c ON c.id_habitacion = h.id_habitacion
-    WHERE c.esta_libre = TRUE
-    ORDER BY s.nombre_sector, h.id_habitacion, c.id_cama;
-END;
-$$ LANGUAGE plpgsql;
- */
-
 CREATE OR REPLACE FUNCTION listar_camas_libres()
 RETURNS TABLE(
     id_habitacion INT,
@@ -71,36 +31,13 @@ $$ LANGUAGE plpgsql;
 -- LISTADO COMENTARIOS
 -- ===========================================
 
-/* CREATE OR REPLACE FUNCTION obtener_comentarios_paciente_internacion(
-  p_id_internacion INT
-)
-RETURNS TABLE(
-  id_comentario INT,
-  fecha_hora TIMESTAMP,
-  descripcion TEXT,
-  id_recorrido INT
-) AS $$
-BEGIN
-  RETURN QUERY
-  SELECT c.id_comentario,
-          c.fecha_hora,
-          c.descripcion,
-          c.id_recorrido
-  FROM COMENTARIO c
-  JOIN INTERNACION i ON c.id_internacion = i.id_internacion
-  WHERE i.id_internacion = p_id_internacion
-  ORDER BY c.fecha_hora;
-END;
-$$ LANGUAGE plpgsql;
- */
-
 CREATE OR REPLACE FUNCTION listar_comentarios_internacion(p_id_internacion INT)
 RETURNS TABLE(
     id_internacion INT,
     fecha_hora_inicio_int TIMESTAMP,
     fecha_hora_fin_int TIMESTAMP,
 
-    nro_dni BIGINT,
+    nro_dni VARCHAR(8),
     nombre VARCHAR,
     apellido VARCHAR,
 
@@ -108,7 +45,7 @@ RETURNS TABLE(
     fecha_hora_comentario TIMESTAMP,
     descripcion TEXT,
 
-    nro_matricula BIGINT,
+    nro_matricula VARCHAR(4),
     nombre_doctor VARCHAR
 ) AS $$
 BEGIN
@@ -141,7 +78,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ===========================================
--- AUDOTORIAS CAMBIO GUARDIAS
+-- AUDITORIAS CAMBIO GUARDIAS
 -- ===========================================
 
 CREATE OR REPLACE FUNCTION listar_modificaciones_guardia()
@@ -152,7 +89,7 @@ RETURNS TABLE(
     descripcion TEXT,
     fecha_guardia DATE,
     especialidad VARCHAR,
-    nro_matricula BIGINT,
+    nro_matricula VARCHAR(4),
     nombre_medico VARCHAR,
     turnos JSON
 ) AS $$
@@ -191,7 +128,3 @@ BEGIN
     ORDER BY umg.fecha_hora DESC;
 END;
 $$ LANGUAGE plpgsql;
-
--- ===========================================
--- RELACIONES ENTRE GUARDIAS, TURNOS Y ESPECIALIDADES
--- ===========================================

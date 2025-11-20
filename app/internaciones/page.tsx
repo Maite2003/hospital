@@ -4,15 +4,23 @@ import { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { UserPlus, Activity } from 'lucide-react';
-import { crearInternacion, getListadoCamas } from '@/lib/actions';
-import { TipoListadoCamas } from '@/types/types';
+import { TipoListadoCamas, crearInternacion } from '@/types/types';
+import { getReporteCamasLibres } from '@/lib/data/camas';
 
 export default function GestionInternacionesPage() {
   const [camasDisponibles, setCamasDisponibles] = useState<TipoListadoCamas[]>([]);
 
+  // Conseguir camas libres
+  async function loadCamas() {
+    const res = await fetch("/api/reportes/camas_libres");
+    if (!res.ok) throw new Error("Error al obtener camas libres");
+    const camitas: TipoListadoCamas[] = (await res.json()).camas;
+    setCamasDisponibles(camitas);
+  }
+
   // Cargar camas al inicio
   useEffect(() => {
-    getListadoCamas().then(setCamasDisponibles);
+    loadCamas();
   }, []);
 
   const validationSchema = Yup.object({
@@ -33,23 +41,33 @@ export default function GestionInternacionesPage() {
     onSubmit: async (values, { resetForm }) => {
       const [habitacionId, camaId] = values.camaSeleccionada.split('-');
 
-      const result = await crearInternacion({
+      const infoInternacion: crearInternacion = {
         dniPaciente: Number(values.dniPaciente),
         matriculaMedico: Number(values.medicoMatricula),
         habitacionId: Number(habitacionId),
         camaId: Number(camaId),
         fechaIngreso: values.fechaIngreso
-      });
+      };
 
-      if (result.success) {
-        alert("✅ Internación guardada. Trigger de ocupación ejecutado.");
-        resetForm();
-        // Recargar camas
-        getListadoCamas().then(setCamasDisponibles);
-      } else {
-        alert("❌ Error: " + result.message);
+      try {
+        const res = await fetch("/api/internaciones", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(infoInternacion),
+        });
+        if (!res.ok) {
+          const error = await res.json();
+          alert("❌ Error: " + error);
+        } else {
+          alert("✅ Internación guardada. Trigger de ocupación ejecutado.");
+          resetForm();
+          // Recargar camas
+          loadCamas();
+        }
+      } catch (error) {
+        alert("❌ Error: " + error);
       }
-    },
+    }
   });
 
   return (

@@ -2,34 +2,28 @@
 
 import React, { useEffect, useState } from 'react';
 import { ShieldAlert } from 'lucide-react';
-import { getAuditoriaGuardias } from '@/lib/actions';
-import { TipoListadoModificaciones } from '@/types';
+import { TipoListadoModificaciones } from '@/types/types';
 
 export default function AuditoriaPage() {
-  const [auditoria, setAuditoria] = useState<TipoListadoModificaciones[]>([]);
+  const [modificaciones_guardias, setModificacionesGuardias] = useState<TipoListadoModificaciones[]>([]);
   
+  // Conseguir modificaciones a guardias
+  async function loadAudutorias() {
+    const res = await fetch("/api/reportes/modificaciones_guardias");
+    if (!res.ok) throw new Error("Error al obtener modificaciones de guardias");
+    const modificaciones: TipoListadoModificaciones[] = (await res.json()).modificaciones_guardias;
+    setModificacionesGuardias(modificaciones);
+  }
+
   useEffect(() => {
-    getAuditoriaGuardias().then(setAuditoria);
+    loadAudutorias();
   }, []);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-800">Reportes: Auditoría Guardias</h1>
-        <p className="text-slate-500">Registro de cambios en asignación de guardias sensibles.</p>
-      </div>
-      
-      <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-md">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <ShieldAlert className="h-5 w-5 text-red-500" />
-          </div>
-          <div className="ml-3">
-            <p className="text-sm text-red-700 font-medium">
-              Esta información es confidencial. Todas las consultas a esta pantalla quedan registradas por seguridad.
-            </p>
-          </div>
-        </div>
+        <p className="text-slate-500">Registro de cambios en asignación de guardias.</p>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200">
@@ -44,25 +38,24 @@ export default function AuditoriaPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {auditoria.map((audit, idx) => (
-              <tr key={idx} className="hover:bg-slate-50">
-                <td className="p-4 font-mono text-xs text-slate-500">
-                  {new Date(audit.fecha_hora_mod).toLocaleString()}
-                </td>
-                <td className="p-4 font-medium">@{audit.username}</td>
-                <td className="p-4">
-                  <div className="flex flex-col">
-                    <span>{audit.nombre_medico}</span>
-                    <span className="text-xs text-slate-500">{audit.especialidad}</span>
-                  </div>
-                </td>
-                <td className="p-4">#{audit.id_guardia}</td>
-                <td className="p-4 italic">"{audit.descripcion}"</td>
-              </tr>
-            ))}
-            {auditoria.length === 0 && (
-                <tr><td colSpan={5} className="p-8 text-center text-slate-400">No hay registros de auditoría.</td></tr>
-            )}
+            {modificaciones_guardias 
+              ? modificaciones_guardias.map((modificaciones, idx) => (
+                <tr key={idx} className="hover:bg-slate-50">
+                  <td className="p-4 font-mono text-xs text-slate-500">
+                    {new Date(modificaciones.fecha_hora_mod).toLocaleString()}
+                  </td>
+                  <td className="p-4 font-medium">@{modificaciones.username}</td>
+                  <td className="p-4">
+                    <div className="flex flex-col">
+                      <span>{modificaciones.nombre_medico}</span>
+                      <span className="text-xs text-slate-500">{modificaciones.especialidad}</span>
+                    </div>
+                  </td>
+                  <td className="p-4">#{modificaciones.id_guardia}</td>
+                  <td className="p-4 italic">"{modificaciones.descripcion}"</td>
+                </tr>
+              ))
+            : <tr><td colSpan={5} className="p-8 text-center text-slate-400">No hay registros de auditoría.</td></tr>}
           </tbody>
         </table>
       </div>

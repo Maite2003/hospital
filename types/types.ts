@@ -1,88 +1,88 @@
 
 export interface Persona {
-    dni: number,
+    nroDni: number,
     nombre: string,
     apellido: string
 }
 
 export interface Paciente {
-    nro_dni: number,
+    nroDni: number,
     sexo: string,
-    fecha_nac: Date
+    fechaNac: Date | string,
 }
 
 export interface Medico {
-    nro_matricula: number,
-    fecha_ingreso: Date,
+    nroMatricula: number,
+    fechaIngreso: Date | string,
     foto: string,
     cuil: number,
     cuit: number,
-    nro_dni: number
+    nroDni: number
 }
 
 export interface Comentario {
-    id_internacion: number,
-    id_comentario: number,
-    fecha_hora: Date,
+    idInternacion: number,
+    idComentario: number,
+    fechaHora: Date | string,
     descripcion: string,
     id_recorrido: number,
 }
 
 export interface Recorrido {
     id_recorrido: number,
-    fecha: Date,
+    fecha: Date | string,
     id_ronda: number,
     nro_matricula: number,
 }
 
 export interface Internacion {
-    id_internacion: number,
-    fecha_hora_inicio: Date,
-    fecha_hora_fin: Date,
-    nro_matricula: number,
-    nro_dni: number,
+    id: number,
+    fechaHoraInicio: Date | string,
+    fechaHoraFin: Date | string,
+    nroMatricula: number,
+    nroDni: number,
 }
 
 export interface Cama {
-    id_cama: number,
-    id_habitacion: number,
-    esta_libre: boolean,
+    id: number,
+    idHabitacion: number,
+    estaLibre: boolean,
 }
 
 export interface Habitacion {
-    id_habitacion: number,
+    id: number,
     piso: number,
     orientacion: string,
-    id_sector: number,
+    idSector: number,
 }
 
 export interface Sector {
-    id_sector: number,
-    nombre_sector: string,
+    id: number,
+    nombreSector: string,
 }
 
 export interface Especialidad {
     id_especialidad: number,
-    nombre_especialidad: string,
+    nombre: string,
 }
 
 export interface Usuario {
     username: string,
     password: string,
-    puede_mod_guardia: boolean,
-    nro_dni: number,
+    puedeModGuardia: boolean,
+    nroDni: number,
 }
 
 export interface UsuarioModificaGuardia {
     username: string,
     id_guardia: number,
-    fecha_hora: Date,
+    fecha_hora: Date | string,
     descripcion: string,
 }
 
 export interface Guardia {
     id_guardia: number,
-    fecha: Date,
+    fecha: Date | string,
     id_especialidad: number,
     nro_matricula: number,
 }
@@ -97,6 +97,8 @@ export interface TurnoGuardia {
   hora_inicio: string;
   hora_fin: string;
 }
+
+// REPORTES
 
 export interface TipoListadoModificaciones {
   username: string;
@@ -119,16 +121,64 @@ export interface TipoListadoCamas {
   esta_libre: boolean;
 }
 
+export interface TipoCamaConDetalle {
+    id: number,
+    idHabitacion: number,
+    habitacion: {
+        piso: number,
+        orientacion: string,
+        sector: {
+            nombreSector: string,
+        }
+    }
+    estaLibre: boolean,
+}
+
+export interface TipoFilasComentariosPorInternacion {
+    id_internacion: number;
+    fecha_hora_inicio_int: Date | string;
+    fecha_hora_fin_int: Date | string | null;
+    nro_dni: number;
+    nombre: string;
+    apellido: string;
+    id_comentario: number;
+    fecha_hora_comentario: Date | string;
+    descripcion: string;
+    nro_matricula: number;
+    nombre_doctor: string;
+}
+
+export interface TipoComentario {
+    idComentario: number;
+    fechaHora: Date | string;
+    descripcion: string;
+    nroMatricula: number;
+    nombre_doctor: string;
+}
+
 export interface TipoListadoComentarios {
-  id_internacion: number;
-  fecha_hora_inicio_int: Date | string;
-  fecha_hora_fin_int: Date | string | null;
-  nro_dni: number; 
+  idInternacion: number;
+  fechaHoraInicio: Date | string;
+  fechaHoraFin: Date | string | null;
+  nroDni: number; 
   nombre: string;
   apellido: string;
-  id_comentario: number;
-  fecha_hora_comentario: Date | string;
-  descripcion: string;
-  nro_matricula: number; 
-  nombre_doctor: string;
+  comentarios: TipoComentario[]
+}
+
+// INTERNACIONES TRANSACCIONES
+ export interface crearInternacion {
+    dniPaciente: number;
+    matriculaMedico: number;
+    camaId: number;
+    habitacionId: number;
+     fechaIngreso: Date | string;
+}
+
+export interface editarInternacion {
+    idInternacion: number,
+    matriculaMedico?: number;
+    camaId?: number;
+    habitacionId?: number;
+    fechaSalida?: Date | string;
 }

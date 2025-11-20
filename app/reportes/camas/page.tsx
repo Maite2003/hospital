@@ -2,29 +2,71 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { BedDouble, Filter, Search } from 'lucide-react';
-import { getListadoCamas } from '@/lib/actions';
-import { TipoListadoCamas } from '@/types';
+import { TipoCamaConDetalle } from '@/types/types';
+import axios from 'axios';
 
 export default function ReporteCamasPage() {
-  const [camas, setCamas] = useState<TipoListadoCamas[]>([]);
+  const [camas, setCamas] = useState<TipoCamaConDetalle[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Estados para filtros
   const [filterSector, setFilterSector] = useState('Todos');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Conseguir camas
+  async function loadCamas() {
+    const res = await axios.get("/api/camas");
+    if (res.status != 200) throw new Error("Error al obtener camas");
+    const camas: TipoCamaConDetalle[] = res.data.camas;
+    setCamas(camas);
+  }
+
+  interface ResumenSector {
+    total: number;
+    libres: number;
+    ocupadas: number;
+  }
+
+  // El resultado será un objeto donde la clave es el nombre del sector
+  type ResumenCamas = Record<string, ResumenSector>;
+
+  function calcularResumenCamas(camas: TipoCamaConDetalle[]): ResumenCamas {
+    return camas.reduce((acc, cama) => {
+      const sectorName = cama.habitacion.sector.nombreSector;
+
+      // 1. Inicialización: Si el sector no está en el acumulador, lo creamos.
+      if (!acc[sectorName]) {
+        acc[sectorName] = { total: 0, libres: 0, ocupadas: 0 };
+      }
+
+      // 2. Acumulación:
+      acc[sectorName].total += 1; // Siempre sumamos al total
+
+      if (cama.estaLibre) {
+        acc[sectorName].libres += 1; // Sumamos a libres si esta_libre es true
+      } else {
+        acc[sectorName].ocupadas += 1; // Sumamos a ocupadas si esta_libre es false
+      }
+
+      return acc;
+
+    }, {} as ResumenCamas); // Inicializamos el acumulador como un objeto vacío
+  }
+
   // Carga inicial de datos
   useEffect(() => {
-    getListadoCamas()
-      .then(setCamas)
-      .finally(() => setLoading(false));
+    setLoading(true);
+    loadCamas();
+    setLoading(false);
   }, []);
 
   // 1. Obtener lista única de sectores para el dropdown
   const sectors = useMemo(() => {
-    const unique = Array.from(new Set(camas.map(c => c.nombre_sector)));
+    const unique = Array.from(new Set(camas.map(c => c.habitacion.sector.nombreSector)));
     return ['Todos', ...unique.sort()]; // Ordenamos los sectores alfabéticamente
   }, [camas]);
+
+  const summary = calcularResumenCamas(camas);
 
   // 2. Lógica de Filtrado y Ordenamiento
   const filteredAndSortedCamas = useMemo(() => {
@@ -32,46 +74,35 @@ export default function ReporteCamasPage() {
 
     // A. Filtro por Dropdown de Sector
     if (filterSector !== 'Todos') {
-      result = result.filter(c => c.nombre_sector === filterSector);
+      result = result.filter(c => c.habitacion.sector.nombreSector === filterSector);
     }
 
     // B. Filtro por búsqueda de texto (opcional, por si quieren buscar Nro Habitación)
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(c => 
-        c.id_habitacion.toString().includes(term) || 
-        c.nombre_sector.toLowerCase().includes(term)
+        c.idHabitacion.toString().includes(term) || 
+        c.habitacion.sector.nombreSector.toLowerCase().includes(term)
       );
     }
 
     // C. Ordenamiento por defecto: Sector -> Habitación -> Cama
     result.sort((a, b) => {
       // Criterio 1: Sector (A-Z)
-      if (a.nombre_sector < b.nombre_sector) return -1;
-      if (a.nombre_sector > b.nombre_sector) return 1;
+      if (a.habitacion.sector.nombreSector < b.habitacion.sector.nombreSector) return -1;
+      if (a.habitacion.sector.nombreSector > b.habitacion.sector.nombreSector) return 1;
       
       // Criterio 2: Número de Habitación (Ascendente)
-      if (a.id_habitacion !== b.id_habitacion) {
-        return a.id_habitacion - b.id_habitacion;
+      if (a.idHabitacion !== b.idHabitacion) {
+        return a.idHabitacion - b.idHabitacion;
       }
 
       // Criterio 3: Nro de Cama
-      return a.id_cama - b.id_cama;
+      return a.id - b.id;
     });
 
     return result;
   }, [camas, filterSector, searchTerm]);
-
-  // 3. Calcular resumen basado en la vista filtrada
-  const summary = useMemo(() => {
-    return filteredAndSortedCamas.reduce((acc, curr) => {
-      const sector = curr.nombre_sector;
-      if (!acc[sector]) acc[sector] = { total: 0, libres: 0 };
-      acc[sector].total += 1;
-      if (curr.esta_libre) acc[sector].libres += 1;
-      return acc;
-    }, {} as Record<string, { total: number; libres: number }>);
-  }, [filteredAndSortedCamas]);
 
   if (loading) return <div className="p-10 text-center text-slate-500">Cargando disponibilidad hospitalaria...</div>;
 
@@ -120,7 +151,7 @@ export default function ReporteCamasPage() {
             <h3 className="font-semibold text-slate-600 text-sm uppercase tracking-wide">{sector}</h3>
             <div className="mt-2 flex justify-between items-end">
               <span className="text-3xl font-bold text-teal-700">{data.libres}</span>
-              <span className="text-sm text-slate-400 font-medium">de {data.total} camas libres</span>
+              <span className="text-sm text-slate-400 font-medium">de {data.total} camas totales</span>
             </div>
           </div>
         ))}
@@ -139,24 +170,26 @@ export default function ReporteCamasPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {filteredAndSortedCamas.map((cama, idx) => (
-              <tr key={`${cama.id_habitacion}-${cama.id_cama}-${idx}`} className="hover:bg-slate-50 transition-colors">
+            {filteredAndSortedCamas.map((cama, idx) => {
+              console.log(cama);
+              return (
+              <tr key={`${cama.idHabitacion}-${cama.id}-${idx}`} className="hover:bg-slate-50 transition-colors">
                 <td className="p-4">
                   <span className="px-2 py-1 bg-slate-100 rounded text-xs font-medium text-slate-600">
-                    {cama.nombre_sector}
+                    {cama.habitacion.sector.nombreSector}
                   </span>
                 </td>
                 <td className="p-4 font-bold text-slate-700">
-                  Hab. {cama.id_habitacion}
+                  Hab. {cama.idHabitacion}
                 </td>
                 <td className="p-4 text-slate-500 text-xs">
-                  Piso {cama.piso} • {cama.orientacion === 'N' ? 'Norte' : cama.orientacion === 'S' ? 'Sur' : cama.orientacion === 'E' ? 'Este' : 'Oeste'}
+                  Piso {cama.habitacion.piso} • {cama.habitacion.orientacion === 'N' ? 'Norte' : cama.habitacion.orientacion === 'S' ? 'Sur' : cama.habitacion.orientacion === 'E' ? 'Este' : 'Oeste'}
                 </td>
                 <td className="p-4">
-                  Cama {cama.id_cama}
+                  Cama {cama.id}
                 </td>
                 <td className="p-4">
-                  {cama.esta_libre ? (
+                  {cama.estaLibre ? (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
                       Libre
                     </span>
@@ -167,7 +200,7 @@ export default function ReporteCamasPage() {
                   )}
                 </td>
               </tr>
-            ))}
+            )})}
             {filteredAndSortedCamas.length === 0 && (
               <tr>
                 <td colSpan={5} className="p-8 text-center text-slate-400 italic">
