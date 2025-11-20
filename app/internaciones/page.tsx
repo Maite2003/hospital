@@ -6,15 +6,16 @@ import * as Yup from 'yup';
 import { UserPlus, Activity } from 'lucide-react';
 import { TipoListadoCamas, crearInternacion } from '@/types/types';
 import { getReporteCamasLibres } from '@/lib/data/camas';
+import axios from 'axios';
 
 export default function GestionInternacionesPage() {
   const [camasDisponibles, setCamasDisponibles] = useState<TipoListadoCamas[]>([]);
 
   // Conseguir camas libres
   async function loadCamas() {
-    const res = await fetch("/api/reportes/camas_libres");
-    if (!res.ok) throw new Error("Error al obtener camas libres");
-    const camitas: TipoListadoCamas[] = (await res.json()).camas;
+    const res = await axios.get("/api/reportes/camas_libres");
+    if (res.status != 200) throw new Error("Error al obtener camas libres");
+    const camitas: TipoListadoCamas[] = res.data.camas;
     setCamasDisponibles(camitas);
   }
 
@@ -24,8 +25,8 @@ export default function GestionInternacionesPage() {
   }, []);
 
   const validationSchema = Yup.object({
-    dniPaciente: Yup.number().required('Requerido'),
-    medicoMatricula: Yup.number().required('Requerido'),
+    dniPaciente: Yup.string().required('Requerido').matches(/^[0-9]{7,8}$/, 'El DNI debe contener 8 dígitos numéricos, sin puntos ni espacios.'),
+    medicoMatricula: Yup.string().required('Requerido').length(4, 'La matrícula debe tener exactamente 4 dígitos.').matches(/^[0-9]+$/, 'La matrícula debe contener solo dígitos numéricos.'),
     camaSeleccionada: Yup.string().required('Seleccione una cama'), // Guardamos "habID-camaID"
     fechaIngreso: Yup.date().required('Requerido')
   });
@@ -42,30 +43,28 @@ export default function GestionInternacionesPage() {
       const [habitacionId, camaId] = values.camaSeleccionada.split('-');
 
       const infoInternacion: crearInternacion = {
-        dniPaciente: Number(values.dniPaciente),
-        matriculaMedico: Number(values.medicoMatricula),
+        dniPaciente: values.dniPaciente,
+        matriculaMedico: values.medicoMatricula,
         habitacionId: Number(habitacionId),
         camaId: Number(camaId),
         fechaIngreso: values.fechaIngreso
       };
 
       try {
-        const res = await fetch("/api/internaciones", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(infoInternacion),
-        });
-        if (!res.ok) {
-          const error = await res.json();
-          alert("❌ Error: " + error);
-        } else {
-          alert("✅ Internación guardada. Trigger de ocupación ejecutado.");
-          resetForm();
-          // Recargar camas
-          loadCamas();
-        }
+        await axios.post("/api/internaciones", infoInternacion);
+        alert("✅ Internación guardada. Trigger de ocupación ejecutado.");
+        resetForm();
+        loadCamas();
+        
       } catch (error) {
-        alert("❌ Error: " + error);
+        let errorMessage = "Error de base de datos o conexión desconocido";
+
+        if (axios.isAxiosError(error) && error.response) {
+          errorMessage = error.response.data.error || error.response.data.message || JSON.stringify(error.response.data);
+        } else if (error instanceof Error) {
+           errorMessage = error.message;
+        }
+        alert(`❌ Error: ${errorMessage}`);
       }
     }
   });
@@ -86,7 +85,7 @@ export default function GestionInternacionesPage() {
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">DNI Paciente</label>
               <input
-                type="number"
+                type="text"
                 {...formik.getFieldProps('dniPaciente')}
                 className="w-full p-2 border border-slate-300 rounded-md outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="Ej: 12345678"
@@ -95,7 +94,7 @@ export default function GestionInternacionesPage() {
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Matrícula Médico</label>
               <input
-                type="number"
+                type="text"
                 {...formik.getFieldProps('medicoMatricula')}
                 className="w-full p-2 border border-slate-300 rounded-md outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="Ej: 9988"
