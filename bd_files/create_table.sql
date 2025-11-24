@@ -225,7 +225,7 @@ CREATE TABLE RECORRIDO (
     id_recorrido SERIAL PRIMARY KEY,
     fecha DATE NOT NULL,
     id_ronda INT NOT NULL,
-    nro_matricula VARCHAR(8) NOT NULL,
+    nro_matricula VARCHAR(4) NOT NULL,
     FOREIGN KEY (id_ronda) REFERENCES RONDA (id_ronda),
     FOREIGN KEY (nro_matricula) REFERENCES MEDICO (nro_matricula)
 );
@@ -259,7 +259,7 @@ CREATE TABLE COMENTARIO (
 -- ===========================================
 
 CREATE TABLE VACACION (
-    nro_matricula VARCHAR(8) NOT NULL,
+    nro_matricula VARCHAR(4) NOT NULL,
     id_vacacion SERIAL,
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE NOT NULL,
