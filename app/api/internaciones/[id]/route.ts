@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getReporteComentariosInternacion } from '@/lib/data/comentarios'
+import { getInternacion } from '@/lib/data/internaciones'
 
 export async function GET(
     req: Request,
@@ -8,11 +8,11 @@ export async function GET(
     const id = (await params).id;
     const id_parsed = parseInt(id);
 
-    const internacion = await getReporteComentariosInternacion(id_parsed);
+    const internacion = await getInternacion(id_parsed);
     return NextResponse.json({ internacion }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { error: `Error al obtener los comentario de la internacion, error es ${error}`} , { status: 500 }
+      { error: `Error al obtener la internacion, error es ${error}`} , { status: 500 }
     );
   }
 }

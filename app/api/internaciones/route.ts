@@ -1,34 +1,60 @@
 import { NextResponse } from "next/server";
+import { crearInternacion, getTodasLasInternaciones, eliminarInternacion } from "@/lib/data/internaciones";
+import { crearInternacion as crearInternacionProps, Internacion } from '@/types/types';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body: crearInternacionProps = await request.json();
 
-    // Validación simple
-    if (!body.name || !body.price) {
-      return NextResponse.json(
-        { error: "Faltan campos obligatorios: name y price" },
-        { status: 400 }
-      );
-    }
-
-    if (typeof body.price !== "number" || body.price <= 0) {
-      return NextResponse.json(
-        { error: "price debe ser un número mayor a 0" },
-        { status: 400 }
-      );
-    }
-
-    // Si todo está bien, procesamos
-    // ... lógica para guardar
-
+    const internacion = crearInternacion(body);
+    
     return NextResponse.json(
-      { message: "Producto creado exitosamente", data: body },
+      { internacion },
       { status: 201 }
     );
   } catch (error) {
     return NextResponse.json(
       { error: "Error al procesar la solicitud" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    const internaciones: Internacion[] = await getTodasLasInternaciones();
+
+    return NextResponse.json({ internaciones }, {status: 200});
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Error al obtener las internaciones" }, { status: 500 }
+    );
+  }
+}
+
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const id = parseInt(await params.id);
+    const deleted = await eliminarInternacion(id);
+
+    if (!deleted) {
+      return NextResponse.json(
+        { error: "Internacion no encontrado" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { message: "Internaciones eliminada correctamente" },
+      { status: 200 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Error al eliminar internacion" },
       { status: 500 }
     );
   }

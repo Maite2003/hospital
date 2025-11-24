@@ -1,87 +1,47 @@
-import {prisma} from "@/lib/prisma";
-import { crearInternacion as crearInternacionProps } from '@/types/types';
-
-// Crear
+import { prisma } from "@/lib/prisma";
+import { crearInternacion as crearInternacionProps, Internacion } from '@/types/types';
 
 export async function crearInternacion(data: crearInternacionProps) {
-  try {
-    // 1. Buscar paciente
-    const paciente = await prisma.paciente.findUnique({
-      where: { nroDni: data.dniPaciente }
-    });
+  const internacion = await prisma.$queryRaw`
+      SELECT * FROM crear_internacion(${data.camaId}, ${data.dniPaciente}, ${data.fechaIngreso}, ${data.habitacionId}, ${data.matriculaMedico});
+    `;
 
-    if (!paciente) {
-      return { success: false, message: 'Paciente no encontrado. Debe darlo de alta primero.' };
+  return internacion;
+}
+
+export async function getTodasLasInternaciones() {
+  const internaciones: Internacion[] = await prisma.internacion.findMany({
+    select: {
+      id: true,
+      fechaHoraFin: true,
+      fechaHoraInicio:true,
+      nroMatricula: true,
+      nroDni: true,
     }
-
-    const medico = await prisma.medico.findUnique({
-      where: { nroMatricula: data.matriculaMedico }
-    });
-
-    if (!medico) {
-      return { success: false, message: 'Médico no encontrado.' };
-    }
-
-    const cama = await prisma.cama.findUnique({
-      where: {
-        id_idHabitacion: {
-          id: data.camaId,
-          idHabitacion: data.habitacionId
-        }
-      }
-    });
-
-    if (!cama) {
-      return {success: false, message: "Cama no encontrada."}
-    }
-
-    // 2. Crear internación y Ocupar cama (Transacción)
-    return prisma.$transaction(async (tx) => {
-      // TODO: CAMBIAR ESTO A UNA TRANSACCION EN LA BASE DE DATOS
-      // 1. CREAR INTERNACIÓN Y GUARDAR ID
-      const nuevaInternacion = await tx.internacion.create({
-        data: {
-          fechaHoraInicio: new Date(data.fechaIngreso),
-          paciente: {
-            connect: {
-              nroDni: paciente.nroDni,
-            }
-          },
-          medico: {
-            connect: {
-              nroMatricula: medico.nroMatricula,
-            }
-          }
-        },
-        select: {
-          id: true
-        }
-      });
-
-      // 2. CREAR ASIGNACIÓN DE CAMA (USAMOS EL ID CREADO EN EL PASO 1)
-      const asignacionCama = await tx.internacionCama.create({
-        data: {
-          fechaHoraAsignacion: new Date(),
-          internacion: {
-            connect: {
-              id: nuevaInternacion.id
-            }
-          },
-          cama: {
-            connect: {
-              id_idHabitacion: {
-                id: cama.id,
-                idHabitacion: cama.idHabitacion
-              }
-            }
-          }
-        }
-      });
   });
-    return { success: true, message: 'Internación creada exitosamente' };
 
-  } catch (error) {
-    console.error(error);
-    return { success: false, message: 'Error de base de datos' };
-  }
+  return internaciones;
+}
+
+export async function getInternacion(id: number) {
+  const internacion = await prisma.internacion.findFirst({
+    where: {
+      id: id
+    },
+    select: {
+      id: true,
+      fechaHoraFin: true,
+      fechaHoraInicio:true,
+      nroMatricula: true,
+      nroDni: true,
+    }
+  });
+  return internacion;
+}
+
+export async function eliminarInternacion(id: number) {
+  const internacion = await prisma.$queryRaw`
+      SELECT * FROM eliminar_internacion(${id});
+    `;
+  return internacion;
 }

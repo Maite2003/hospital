@@ -172,7 +172,7 @@ export interface TipoListadoComentarios {
     matriculaMedico: string;
     camaId: number;
     habitacionId: number;
-     fechaIngreso: Date | string;
+    fechaIngreso: Date | string;
 }
 
 export interface editarInternacion {
