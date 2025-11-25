@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getInternacion } from '@/lib/data/internaciones';
-import { eliminarInternacion } from "@/lib/data/internaciones";
+import { editarInternacion, eliminarInternacion } from "@/lib/data/internaciones";
 
 export async function GET(
     req: Request,
@@ -14,6 +14,29 @@ export async function GET(
   } catch (error) {
     return NextResponse.json(
       { error: `Error al obtener la internacion, error es ${error}`} , { status: 500 }
+    );
+  }
+}
+
+interface modificarInternacionProps {
+  id_cama: number,
+  id_habitacion: number,
+}
+
+export async function POST(
+    request: Request,
+    { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const id = (await params).id;
+    const id_parsed = parseInt(id);
+
+    const body: modificarInternacionProps = await request.json();
+
+    await editarInternacion(id_parsed, body.id_cama, body.id_habitacion);
+    return NextResponse.json({ status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: `Error al obtener los comentario de la internacion, error es ${error}`} , { status: 500 }
     );
   }
 }

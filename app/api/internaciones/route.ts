@@ -5,11 +5,9 @@ import { crearInternacion as crearInternacionProps, Internacion } from '@/types/
 export async function POST(request: Request) {
   try {
     const body: crearInternacionProps = await request.json();
-
-    const internacion = crearInternacion(body);
+    crearInternacion(body);
     
     return NextResponse.json(
-      { internacion },
       { status: 201 }
     );
   } catch (error) {

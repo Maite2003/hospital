@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { crearInternacion as crearInternacionProps, Internacion } from '@/types/types';
 
 export async function crearInternacion(data: crearInternacionProps) {
-  const internacion = await prisma.$queryRaw`
+  await prisma.$queryRaw`
       BEGIN;
 
       -- 1. Crear internación
@@ -21,8 +21,6 @@ export async function crearInternacion(data: crearInternacionProps) {
 
       COMMIT;
     `;
-
-  return internacion;
 }
 
 export async function getTodasLasInternaciones() {
@@ -68,4 +66,21 @@ export async function eliminarInternacion(id: number) {
       COMMIT; 
     `;
   return internacion;
+}
+
+
+export async function editarInternacion(id: number, id_cama: number, id_habitacion: number) {
+  await prisma.$queryRaw`
+      BEGIN;
+
+      INSERT INTO INTERNACION_CAMA (${new Date()}, ${id}, ${id_habitacion}, ${id_cama})
+      VALUES (
+          NOW(),
+          :id_internacion,
+          :nueva_habitacion,
+          :nueva_cama
+      );
+
+      COMMIT;
+    `;
 }

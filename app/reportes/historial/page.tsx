@@ -79,7 +79,7 @@ export default function HistorialPacientesPage() {
 
       {hasSearched && !internacion && !loading && (
         <div className="p-8 text-center text-slate-500 bg-slate-50 rounded-lg border border-dashed border-slate-300">
-          No hay comentarios para esa internacion.
+          No se encontro la internacion o comentarios para la internacion seleccionada.
         </div>
       )}
 
