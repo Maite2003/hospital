@@ -1,27 +1,51 @@
-import { prisma } from "@/lib/prisma";
+import { PrismaClient } from '@prisma/client';
 import { crearInternacion as crearInternacionProps, Internacion } from '@/types/types';
 
+const prisma = new PrismaClient();
+
+interface InternacionResult {
+    id_internacion: number;
+}
+
 export async function crearInternacion(data: crearInternacionProps) {
-  await prisma.$queryRaw`
-      BEGIN;
-      SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+  
+  try {
+    const resultadoTransaccion = await prisma.$transaction(async (tx: PrismaClient) => {
+      
+      const internacionCreada: InternacionResult[] = await tx.$queryRaw<InternacionResult[]>`
+        INSERT INTO INTERNACION (fecha_hora_inicio, nro_matricula, nro_dni)
+        VALUES (
+            NOW(), 
+            ${data.matriculaMedico},
+            ${data.dniPaciente} 
+        )
+        RETURNING id_internacion;
+      `;
 
-      -- 1. Crear internación
-      INSERT INTO INTERNACION (fecha_hora_inicio, nro_matricula, nro_dni)
-      VALUES (NOW(), :${data.matriculaMedico}, :${data.dniPaciente})
-      RETURNING id_internacion;
+      if (internacionCreada.length === 0 || !internacionCreada[0].id_internacion) {
+        throw new Error("No se pudo obtener el ID de la internación recién creada.");
+      }
+      
+      const newInternacionId = internacionCreada[0].id_internacion;
+      await tx.$executeRaw`
+        INSERT INTO INTERNACION_CAMA (fecha_hora_asignacion, id_internacion, id_habitacion, id_cama)
+        VALUES (
+            NOW(),
+            ${newInternacionId},
+            ${data.habitacionId},
+            ${data.camaId}
+        );
+      `;
+      
+      return newInternacionId;
+      
+    }, {});
 
-      -- 2. Asignar cama inicial
-      INSERT INTO INTERNACION_CAMA (fecha_hora_asignacion, id_internacion, id_habitacion, id_cama)
-      VALUES (
-          NOW(),
-          currval('internacion_id_internacion_seq'),  -- Última internación creada
-          ${data.habitacionId},
-          ${data.camaId}
-      );
-
-      COMMIT;
-    `;
+    return resultadoTransaccion;
+    
+  } catch (error) {
+    throw error;
+  }
 }
 
 export async function getTodasLasInternaciones() {
@@ -55,35 +79,41 @@ export async function getInternacion(id: number) {
 }
 
 export async function eliminarInternacion(id: number) {
-  const internacion = await prisma.$queryRaw`
-      BEGIN;
-      SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
-
-      UPDATE INTERNACION
-      SET fecha_hora_fin = NOW()
-      WHERE id_internacion = ${id};
-
-      -- El trigger: libera la última cama usada
-
-      COMMIT; 
-    `;
-  return internacion;
+  try {
+    const resultadoTransaccion = await prisma.$transaction(async (tx: PrismaClient) => {
+      const filasAfectadas = await tx.$executeRaw`
+        UPDATE INTERNACION
+        SET fecha_hora_fin = NOW()
+        WHERE id_internacion = ${id};
+      `;
+      
+      return filasAfectadas;
+    }, {});
+    return resultadoTransaccion > 0;
+    
+  } catch (error) {
+    throw error;
+  }
 }
 
 
 export async function editarInternacion(id: number, id_cama: number, id_habitacion: number) {
-  await prisma.$queryRaw`
-      BEGIN;
-      SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+  try {
+    await prisma.$transaction(async (tx: PrismaClient) => {
+      
+      await tx.$executeRaw`
+        INSERT INTO INTERNACION_CAMA (fecha_hora_asignacion, id_internacion, id_habitacion, id_cama)
+        VALUES (
+            NOW(),
+            ${id},          
+            ${id_habitacion}, 
+            ${id_cama}      
+        );
+      `;
+    });
 
-      INSERT INTO INTERNACION_CAMA (fecha_hora_asignacion, id_internacion, id_habitacion, id_cama)
-      VALUES (
-          NOW(),
-          ${id},
-          ${id_habitacion},
-          ${id_cama}
-      );
-
-      COMMIT;
-    `;
+  } catch (error) {
+    console.error("Error al ejecutar la transacción de internación:", error);
+    throw error;
+  }
 }
