@@ -52,6 +52,7 @@ export default function GestionInternacionesPage() {
 
       try {
         const res = await axios.post("/api/internaciones", infoInternacion);
+        console.log(res);
         if (res.status == 201) {
           resetForm();
           loadCamas();
