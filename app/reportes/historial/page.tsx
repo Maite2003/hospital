@@ -29,7 +29,6 @@ export default function HistorialPacientesPage() {
           const internacion: TipoListadoComentarios = i
           setInternacion(internacion)
         }
-        setInternacion(internacion);
         setHasSearched(true);
       }
       else {
@@ -72,7 +71,7 @@ export default function HistorialPacientesPage() {
         </form>
       </div>
 
-      { error && (
+      { !internacion && error && (
         <div className="p-8 text-center text-slate-500 bg-slate-50 rounded-lg border border-dashed border-slate-300">
           {error}
         </div>
