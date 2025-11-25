@@ -3,7 +3,23 @@ import { crearInternacion as crearInternacionProps, Internacion } from '@/types/
 
 export async function crearInternacion(data: crearInternacionProps) {
   const internacion = await prisma.$queryRaw`
-      SELECT * FROM crear_internacion(${data.camaId}, ${data.dniPaciente}, ${data.fechaIngreso}, ${data.habitacionId}, ${data.matriculaMedico});
+      BEGIN;
+
+      -- 1. Crear internación
+      INSERT INTO INTERNACION (fecha_hora_inicio, nro_matricula, nro_dni)
+      VALUES (NOW(), :matricula, :dni)
+      RETURNING id_internacion;
+
+      -- 2. Asignar cama inicial
+      INSERT INTO INTERNACION_CAMA (fecha_hora_asignacion, id_internacion, id_habitacion, id_cama)
+      VALUES (
+          NOW(),
+          currval('internacion_id_internacion_seq'),  -- Última internación creada
+          :id_habitacion,
+          :id_cama
+      );
+
+      COMMIT;
     `;
 
   return internacion;
@@ -41,7 +57,15 @@ export async function getInternacion(id: number) {
 
 export async function eliminarInternacion(id: number) {
   const internacion = await prisma.$queryRaw`
-      SELECT * FROM eliminar_internacion(${id});
+      BEGIN;
+
+      UPDATE INTERNACION
+      SET fecha_hora_fin = NOW()
+      WHERE id_internacion = :id_internacion;
+
+      -- El trigger: libera la última cama usada
+
+      COMMIT; 
     `;
   return internacion;
 }

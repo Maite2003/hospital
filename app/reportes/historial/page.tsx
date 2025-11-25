@@ -10,6 +10,7 @@ export default function HistorialPacientesPage() {
   const [internacion, setInternacion] = useState<TipoListadoComentarios>();
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [error, setError] = useState<string | undefined>(undefined);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,10 +20,20 @@ export default function HistorialPacientesPage() {
     try {
       // Llama a la acción del servidor que ejecuta tus funciones SQL
       const res = await axios.get(`/api/reportes/comentarios_internacion/${idInternacion}`);
-      if (res.status != 200) throw new Error(`Error al obtener los comentarios de la internacion con ID: ${idInternacion}`);
-      const internacion: TipoListadoComentarios = res.data.internacion;
-      setInternacion(internacion);
-      setHasSearched(true);
+
+      if (res.status == 200) {
+        const internacion: TipoListadoComentarios = res.data.internacion;
+        setInternacion(internacion);
+        setHasSearched(true);
+      }
+      else if (res.status == 404) {
+        setInternacion(undefined);
+        setHasSearched(true);
+      } else {
+        setError(res.data.msg);
+        setInternacion(undefined);
+        setHasSearched(true);
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -58,9 +69,15 @@ export default function HistorialPacientesPage() {
         </form>
       </div>
 
-      {hasSearched && !internacion && !loading && (
+      { error && (
         <div className="p-8 text-center text-slate-500 bg-slate-50 rounded-lg border border-dashed border-slate-300">
-          No se encontro la internacion con el ID dado.
+          {error}
+        </div>
+      )}
+
+      {hasSearched && !internacion && !loading && !error && (
+        <div className="p-8 text-center text-slate-500 bg-slate-50 rounded-lg border border-dashed border-slate-300">
+          No hay comentarios para esa internacion.
         </div>
       )}
 
