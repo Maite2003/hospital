@@ -1,0 +1,11 @@
+### Crear internación
+POST http://localhost:3000/api/internaciones
+Content-Type: application/json
+
+{
+  "dniPaciente": "99456780",
+  "matriculaMedico": "1002",
+  "camaId": 2,
+  "habitacionId": 5,
+  "fechaIngreso": "2025-02-14T19:00:00.000Z"
+}

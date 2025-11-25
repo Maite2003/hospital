@@ -31,7 +31,7 @@ export async function POST(
     const id_parsed = parseInt(id);
 
     const body: modificarInternacionProps = await request.json();
-
+    
     await editarInternacion(id_parsed, body.id_cama, body.id_habitacion);
     return NextResponse.json({ status: 200 });
   } catch (error) {
