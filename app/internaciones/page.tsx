@@ -5,7 +5,6 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { UserPlus, Activity } from 'lucide-react';
 import { TipoListadoCamas, crearInternacion } from '@/types/types';
-import { getReporteCamasLibres } from '@/lib/data/camas';
 import axios from 'axios';
 
 export default function GestionInternacionesPage() {
@@ -16,7 +15,8 @@ export default function GestionInternacionesPage() {
     const res = await axios.get("/api/reportes/camas_libres");
     if (res.status != 200) throw new Error("Error al obtener camas libres");
     const camitas: TipoListadoCamas[] = res.data.camas;
-    setCamasDisponibles(camitas);
+    const soloLibres = camitas.filter((cama) => cama.esta_libre);
+    setCamasDisponibles(soloLibres);
   }
 
   // Cargar camas al inicio
@@ -114,7 +114,7 @@ export default function GestionInternacionesPage() {
               className="w-full p-2 border border-slate-300 rounded-md outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
             >
               <option value="">-- Seleccionar --</option>
-              {camasDisponibles.filter((cama) => cama.esta_libre).map((c, idx) => (
+              {camasDisponibles.map((c, idx) => (
                 <option key={`${c.id_habitacion}-${c.id_cama}-${idx}`} value={`${c.id_habitacion}-${c.id_cama}`}>
                   {c.nombre_sector} | Hab: {c.id_habitacion} | Cama: {c.id_cama} ({c.orientacion})
                 </option>
