@@ -34,10 +34,10 @@ export async function GET() {
 
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }) {
+  request: Request,
+  context: { params: Promise<{ id: string }> }) {
   try {
-    const {id} = await params;
+    const {id} = await context.params;
     const parsedId = parseInt(id)
     const deleted = await eliminarInternacion(parsedId);
 
