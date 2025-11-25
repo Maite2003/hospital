@@ -52,7 +52,7 @@ export default function GestionInternacionesPage() {
 
       try {
         const res = await axios.post("/api/internaciones", infoInternacion);
-        console.log(res);
+        console.log(`No tiro error, la respuesta es ${res}`);
         if (res.status == 201) {
           resetForm();
           loadCamas();
@@ -63,6 +63,7 @@ export default function GestionInternacionesPage() {
         }
         
       } catch (error) {
+        console.log(`Tiro error, el error es ${error}`)
         let errorMessage = "Error de base de datos o conexión desconocido";
 
         if (axios.isAxiosError(error) && error.response) {
