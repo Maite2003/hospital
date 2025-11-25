@@ -36,7 +36,7 @@ export async function POST(
     return NextResponse.json({ status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { error: `Error al obtener los comentario de la internacion, error es ${error}`} , { status: 500 }
+      { error: `Error al intentar modificar la cama, error es ${error}`} , { status: 500 }
     );
   }
 }
