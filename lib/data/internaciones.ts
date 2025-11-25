@@ -1,12 +1,9 @@
-import { Prisma } from '@prisma/client';
 import { crearInternacion as crearInternacionProps, Internacion } from '@/types/types';
 import { prisma } from '@/lib/prisma';
 
-interface InternacionResult {
-    id_internacion: number;
-}
 
 export async function crearInternacion(data: crearInternacionProps) {
+  console.log('entre a crearInternacion');
   await prisma.$executeRawUnsafe(`
     BEGIN;
 
@@ -26,6 +23,7 @@ export async function crearInternacion(data: crearInternacionProps) {
 
     COMMIT;
     `);
+    console.log('se ejecuto el query');
 }
 
 export async function getTodasLasInternaciones() {

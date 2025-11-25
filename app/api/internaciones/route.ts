@@ -5,7 +5,9 @@ import { crearInternacion as crearInternacionProps, Internacion } from '@/types/
 export async function POST(request: Request) {
   try {
     const body: crearInternacionProps = await request.json();
+    console.log('Llegue aca');
     crearInternacion(body);
+    console.log("pase aca");
     
     return NextResponse.json(
       { status: 201 }
