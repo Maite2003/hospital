@@ -27,10 +27,10 @@ export default function HistorialPacientesPage() {
         setHasSearched(true);
       }
       else if (res.status == 404) {
+        setError(res.data.msg);
         setInternacion(undefined);
         setHasSearched(true);
       } else {
-        setError(res.data.msg);
         setInternacion(undefined);
         setHasSearched(true);
       }
