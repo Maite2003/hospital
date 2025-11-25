@@ -35,7 +35,7 @@ export async function GET() {
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  params: { id: Promise<string>; }
 ) {
   try {
     const id = parseInt(await params.id);
