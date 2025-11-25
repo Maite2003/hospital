@@ -1,5 +1,5 @@
-import { NextResponse, NextRequest } from "next/server";
-import { crearInternacion, getTodasLasInternaciones, eliminarInternacion } from "@/lib/data/internaciones";
+import { NextResponse } from "next/server";
+import { crearInternacion, getTodasLasInternaciones } from "@/lib/data/internaciones";
 import { crearInternacion as crearInternacionProps, Internacion } from '@/types/types';
 
 export async function POST(request: Request) {
@@ -28,34 +28,6 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json(
       { error: "Error al obtener las internaciones" }, { status: 500 }
-    );
-  }
-}
-
-
-export async function DELETE(
-  request: Request,
-  context: { params: Promise<{ id: string }> }) {
-  try {
-    const {id} = await context.params;
-    const parsedId = parseInt(id)
-    const deleted = await eliminarInternacion(parsedId);
-
-    if (!deleted) {
-      return NextResponse.json(
-        { error: "Internacion no encontrado" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { message: "Internaciones eliminada correctamente" },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Error al eliminar internacion" },
-      { status: 500 }
     );
   }
 }
