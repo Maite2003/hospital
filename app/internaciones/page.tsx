@@ -51,10 +51,15 @@ export default function GestionInternacionesPage() {
       };
 
       try {
-        await axios.post("/api/internaciones", infoInternacion);
-        alert("✅ Internación guardada. Trigger de ocupación ejecutado.");
-        resetForm();
-        loadCamas();
+        const res = await axios.post("/api/internaciones", infoInternacion);
+        if (res.status == 201) {
+          resetForm();
+          loadCamas();
+          alert(`Internacion creada con exito`)
+        } else {
+          resetForm();
+          alert(`${res.data.error}`);
+        }
         
       } catch (error) {
         let errorMessage = "Error de base de datos o conexión desconocido";
@@ -109,7 +114,7 @@ export default function GestionInternacionesPage() {
               className="w-full p-2 border border-slate-300 rounded-md outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
             >
               <option value="">-- Seleccionar --</option>
-              {camasDisponibles.map((c, idx) => (
+              {camasDisponibles.filter((cama) => cama.esta_libre).map((c, idx) => (
                 <option key={`${c.id_habitacion}-${c.id_cama}-${idx}`} value={`${c.id_habitacion}-${c.id_cama}`}>
                   {c.nombre_sector} | Hab: {c.id_habitacion} | Cama: {c.id_cama} ({c.orientacion})
                 </option>

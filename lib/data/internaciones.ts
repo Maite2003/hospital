@@ -94,7 +94,6 @@ export async function eliminarInternacion(id: number) {
   }
 }
 
-
 export async function editarInternacion(id: number, id_cama: number, id_habitacion: number) {
   try {
     await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
