@@ -22,17 +22,20 @@ export default function HistorialPacientesPage() {
       const res = await axios.get(`/api/reportes/comentarios_internacion/${idInternacion}`);
 
       if (res.status == 200) {
-        const internacion: TipoListadoComentarios = res.data.internacion;
+        const i = res.data.internacion
+        if (!i) {
+          setInternacion(undefined);
+        } else {
+          const internacion: TipoListadoComentarios = i
+          setInternacion(internacion)
+        }
         setInternacion(internacion);
         setHasSearched(true);
       }
-      else if (res.status == 404) {
-        setError(res.data.msg);
+      else {
         setInternacion(undefined);
         setHasSearched(true);
-      } else {
-        setInternacion(undefined);
-        setHasSearched(true);
+        setError('Hubo un problema consiguiendo los comentarios, intenta nuevamente mas tarde');
       }
     } catch (error) {
       console.error(error);
@@ -75,7 +78,7 @@ export default function HistorialPacientesPage() {
         </div>
       )}
 
-      {hasSearched && !internacion && !loading && !error && (
+      {hasSearched && !internacion && !loading && (
         <div className="p-8 text-center text-slate-500 bg-slate-50 rounded-lg border border-dashed border-slate-300">
           No hay comentarios para esa internacion.
         </div>
