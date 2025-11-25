@@ -22,7 +22,7 @@ export async function getReporteComentariosInternacion(id_internacion: number) {
     // nombre_doctor: string;
   // }
   // La idea es devolver los campos comunes una vez y despues la lista de comentarios
-  if (!filas) return null;
+  if (filas.length == 0) return null;
   const result: TipoListadoComentarios = {
     idInternacion: filas[0].id_internacion,
     fechaHoraInicio: filas[0].fecha_hora_inicio_int,
