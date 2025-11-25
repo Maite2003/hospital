@@ -35,11 +35,11 @@ export async function GET() {
 
 export async function DELETE(
   request: NextRequest,
-  params: { id: Promise<string>; }
-) {
+  { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = parseInt(await params.id);
-    const deleted = await eliminarInternacion(id);
+    const {id} = await params;
+    const parsedId = parseInt(id)
+    const deleted = await eliminarInternacion(parsedId);
 
     if (!deleted) {
       return NextResponse.json(
