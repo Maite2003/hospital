@@ -7,7 +7,7 @@ export async function crearInternacion(data: crearInternacionProps) {
 
       -- 1. Crear internación
       INSERT INTO INTERNACION (fecha_hora_inicio, nro_matricula, nro_dni)
-      VALUES (NOW(), :matricula, :dni)
+      VALUES (NOW(), :${data.matriculaMedico}, :${data.dniPaciente})
       RETURNING id_internacion;
 
       -- 2. Asignar cama inicial
@@ -15,8 +15,8 @@ export async function crearInternacion(data: crearInternacionProps) {
       VALUES (
           NOW(),
           currval('internacion_id_internacion_seq'),  -- Última internación creada
-          :id_habitacion,
-          :id_cama
+          :${data.habitacionId},
+          :${data.camaId}
       );
 
       COMMIT;
@@ -59,7 +59,7 @@ export async function eliminarInternacion(id: number) {
 
       UPDATE INTERNACION
       SET fecha_hora_fin = NOW()
-      WHERE id_internacion = :id_internacion;
+      WHERE id_internacion = :${id};
 
       -- El trigger: libera la última cama usada
 
@@ -73,12 +73,12 @@ export async function editarInternacion(id: number, id_cama: number, id_habitaci
   await prisma.$queryRaw`
       BEGIN;
 
-      INSERT INTO INTERNACION_CAMA (${new Date()}, ${id}, ${id_habitacion}, ${id_cama})
+      INSERT INTO INTERNACION_CAMA (fecha_hora_asignacion, id_internacion, id_habitacion, id_cama)
       VALUES (
           NOW(),
-          :id_internacion,
-          :nueva_habitacion,
-          :nueva_cama
+          :${id},
+          :${id_habitacion},
+          :${id_cama}
       );
 
       COMMIT;
