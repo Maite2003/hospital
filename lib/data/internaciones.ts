@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { crearInternacion as crearInternacionProps, Internacion } from '@/types/types';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 interface InternacionResult {
     id_internacion: number;
@@ -10,7 +9,7 @@ interface InternacionResult {
 export async function crearInternacion(data: crearInternacionProps) {
   
   try {
-    const resultadoTransaccion = await prisma.$transaction(async (tx: PrismaClient) => {
+    const resultadoTransaccion = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       
       const internacionCreada: InternacionResult[] = await tx.$queryRaw<InternacionResult[]>`
         INSERT INTO INTERNACION (fecha_hora_inicio, nro_matricula, nro_dni)
@@ -80,7 +79,7 @@ export async function getInternacion(id: number) {
 
 export async function eliminarInternacion(id: number) {
   try {
-    const resultadoTransaccion = await prisma.$transaction(async (tx: PrismaClient) => {
+    const resultadoTransaccion = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const filasAfectadas = await tx.$executeRaw`
         UPDATE INTERNACION
         SET fecha_hora_fin = NOW()
@@ -99,7 +98,7 @@ export async function eliminarInternacion(id: number) {
 
 export async function editarInternacion(id: number, id_cama: number, id_habitacion: number) {
   try {
-    await prisma.$transaction(async (tx: PrismaClient) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       
       await tx.$executeRaw`
         INSERT INTO INTERNACION_CAMA (fecha_hora_asignacion, id_internacion, id_habitacion, id_cama)
