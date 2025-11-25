@@ -50,14 +50,7 @@ export async function DELETE(
   try {
     const {id} = await context.params;
     const parsedId = parseInt(id)
-    const deleted = await eliminarInternacion(parsedId);
-
-    if (!deleted) {
-      return NextResponse.json(
-        { error: "Internacion no encontrado" },
-        { status: 404 }
-      );
-    }
+    eliminarInternacion(parsedId);
 
     return NextResponse.json(
       { message: "Internaciones eliminada correctamente" },
