@@ -38,7 +38,7 @@ export interface Recorrido {
 export interface Internacion {
     id: number,
     fechaHoraInicio: Date | string,
-    fechaHoraFin: Date | string,
+    fechaHoraFin: Date | string | null,
     nroMatricula: string,
     nroDni: string,
 }
