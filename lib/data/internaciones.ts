@@ -15,8 +15,8 @@ export async function crearInternacion(data: crearInternacionProps) {
       VALUES (
           NOW(),
           currval('internacion_id_internacion_seq'),  -- Última internación creada
-          :${data.habitacionId},
-          :${data.camaId}
+          ${data.habitacionId},
+          ${data.camaId}
       );
 
       COMMIT;
@@ -59,7 +59,7 @@ export async function eliminarInternacion(id: number) {
 
       UPDATE INTERNACION
       SET fecha_hora_fin = NOW()
-      WHERE id_internacion = :${id};
+      WHERE id_internacion = ${id};
 
       -- El trigger: libera la última cama usada
 
@@ -76,9 +76,9 @@ export async function editarInternacion(id: number, id_cama: number, id_habitaci
       INSERT INTO INTERNACION_CAMA (fecha_hora_asignacion, id_internacion, id_habitacion, id_cama)
       VALUES (
           NOW(),
-          :${id},
-          :${id_habitacion},
-          :${id_cama}
+          ${id},
+          ${id_habitacion},
+          ${id_cama}
       );
 
       COMMIT;
