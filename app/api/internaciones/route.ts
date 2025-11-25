@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { crearInternacion, getTodasLasInternaciones, eliminarInternacion } from "@/lib/data/internaciones";
 import { crearInternacion as crearInternacionProps, Internacion } from '@/types/types';
 
@@ -34,7 +34,7 @@ export async function GET() {
 
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
