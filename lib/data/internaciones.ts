@@ -4,6 +4,7 @@ import { crearInternacion as crearInternacionProps, Internacion } from '@/types/
 export async function crearInternacion(data: crearInternacionProps) {
   await prisma.$queryRaw`
       BEGIN;
+      SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 
       -- 1. Crear internación
       INSERT INTO INTERNACION (fecha_hora_inicio, nro_matricula, nro_dni)
@@ -56,6 +57,7 @@ export async function getInternacion(id: number) {
 export async function eliminarInternacion(id: number) {
   const internacion = await prisma.$queryRaw`
       BEGIN;
+      SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 
       UPDATE INTERNACION
       SET fecha_hora_fin = NOW()
@@ -72,6 +74,7 @@ export async function eliminarInternacion(id: number) {
 export async function editarInternacion(id: number, id_cama: number, id_habitacion: number) {
   await prisma.$queryRaw`
       BEGIN;
+      SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 
       INSERT INTO INTERNACION_CAMA (fecha_hora_asignacion, id_internacion, id_habitacion, id_cama)
       VALUES (
