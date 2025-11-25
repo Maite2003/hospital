@@ -9,7 +9,6 @@ export async function GET(
     const id_parsed = parseInt(id);
 
     const internacion = await getReporteComentariosInternacion(id_parsed);
-    if (!internacion) return NextResponse.json({ msg: "No hay comentarios para esa internacion" }, { status: 404 });
     return NextResponse.json({ internacion }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
