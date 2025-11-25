@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { TipoListadoComentarios, TipoComentario, TipoFilasComentariosPorInternacion } from "@/types/types"
+import { Prisma } from '@prisma/client';
 
 
 export async function getReporteComentariosInternacion(id_internacion: number) {
@@ -21,7 +22,7 @@ export async function getReporteComentariosInternacion(id_internacion: number) {
     // nombre_doctor: string;
   // }
   // La idea es devolver los campos comunes una vez y despues la lista de comentarios
-
+  if (!filas) return null;
   const result: TipoListadoComentarios = {
     idInternacion: filas[0].id_internacion,
     fechaHoraInicio: filas[0].fecha_hora_inicio_int,
@@ -29,7 +30,7 @@ export async function getReporteComentariosInternacion(id_internacion: number) {
     nroDni: filas[0].nro_dni,
     nombre: filas[0].nombre,
     apellido: filas[0].apellido,
-    comentarios: filas.map((fila) => {
+    comentarios: filas.map((fila:TipoFilasComentariosPorInternacion) => {
       const comentario: TipoComentario = {
         idComentario: fila.id_comentario,
         fechaHora: fila.fecha_hora_comentario,
