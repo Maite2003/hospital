@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { crearInternacion as crearInternacionProps, Internacion, InternacionActiva } from '@/types/types';
+import { crearInternacion as crearInternacionProps, InternacionFront } from '@/types/types';
 import { prisma } from '@/lib/prisma';
 
 interface InternacionResult {
@@ -63,7 +63,7 @@ export async function crearInternacion(data: crearInternacionProps) {
 export async function getTodasLasInternaciones() {
     const sqlQuery = Prisma.sql`SELECT * FROM listar_internaciones()`;
     try {
-      const result = await prisma.$queryRaw<InternacionActiva[]>(sqlQuery);
+      const result = await prisma.$queryRaw<InternacionFront[]>(sqlQuery);
       return result;
     } catch {
       return [];
