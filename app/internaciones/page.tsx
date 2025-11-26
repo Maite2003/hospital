@@ -125,10 +125,7 @@ export default function GestionInternacionesPage() {
     }
 
     try {
-      const fechaFin = new Date().toISOString()
-      const res = await axios.put(`/api/internaciones/${idInternacion}`, {
-        fechaHoraFin: fechaFin,
-      })
+      const res = await axios.delete(`/api/internaciones/${idInternacion}`)
 
       if (res.status === 200) {
         alert("Internación terminada exitosamente")
