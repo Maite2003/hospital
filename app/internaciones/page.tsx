@@ -98,7 +98,7 @@ export default function GestionInternacionesPage() {
     const [habitacionId, camaId] = nuevaCamaSeleccionada.split("-")
 
     try {
-      const res = await axios.post(`/api/internaciones/${idInternacion}`, {
+      const res = await axios.patch(`/api/internaciones/${idInternacion}`, {
         id_habitacion: Number(habitacionId),
         id_cama: Number(camaId),
       })
