@@ -423,6 +423,84 @@ $$ LANGUAGE plpgsql;
 
 
 
+-- ===========================================
+-- LISTADO INTERNACIONES
+-- ===========================================
+
+CREATE OR REPLACE FUNCTION listar_internaciones()
+RETURNS TABLE(
+    id_internacion INT,
+    fecha_hora_inicio TIMESTAMP,
+    fecha_hora_fin TIMESTAMP,
+
+    nro_dni VARCHAR,
+    nombre_paciente VARCHAR,
+    apellido_paciente VARCHAR,
+    sexo CHAR,
+    fecha_nac DATE,
+
+    nro_matricula VARCHAR(4),
+    nombre_medico VARCHAR,
+    apellido_medico VARCHAR,
+
+    id_cama INT,
+    id_habitacion INT,
+    piso INT,
+    orientacion CHAR,
+    nombre_sector VARCHAR,
+    fecha_hora_asignacion TIMESTAMP
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        i.id_internacion,
+        i.fecha_hora_inicio,
+        i.fecha_hora_fin,
+
+        -- Paciente
+        p.nro_dni,
+        p.nombre AS nombre_paciente,
+        p.apellido AS apellido_paciente,
+        pa.sexo,
+        pa.fecha_nac,
+
+        -- Médico responsable
+        m.nro_matricula,
+        per.nombre AS nombre_medico,
+        per.apellido AS apellido_medico,
+
+        -- Última cama asignada
+        c.id_cama,
+        h.id_habitacion,
+        h.piso,
+        h.orientacion,
+        s.nombre_sector,
+        ic.fecha_hora_asignacion
+
+    FROM INTERNACION i
+    JOIN PACIENTE pa ON pa.nro_dni = i.nro_dni
+    JOIN PERSONA p ON p.nro_dni = pa.nro_dni
+
+    JOIN MEDICO m ON m.nro_matricula = i.nro_matricula
+    JOIN PERSONA per ON per.nro_dni = m.nro_dni
+
+    -- Última cama asignada (LATERAL subquery)
+    JOIN LATERAL (
+        SELECT *
+        FROM INTERNACION_CAMA ic2
+        WHERE ic2.id_internacion = i.id_internacion
+        ORDER BY ic2.fecha_hora_asignacion DESC
+        LIMIT 1
+    ) ic ON true
+
+    JOIN CAMA c ON c.id_cama = ic.id_cama AND c.id_habitacion = ic.id_habitacion
+    JOIN HABITACION h ON h.id_habitacion = c.id_habitacion
+    JOIN SECTOR s ON s.id_sector = h.id_sector
+
+    ORDER BY i.fecha_hora_inicio;
+END;
+$$ LANGUAGE plpgsql;
+
 
 
 

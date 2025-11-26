@@ -286,7 +286,7 @@ export default function GestionInternacionesPage() {
             <BedDouble className="text-indigo-600" /> Internaciones
           </h2>
           <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">
-            {internaciones.length} {internaciones.length === 1 ? "Activa" : "Activas"}
+            {internaciones.length} {internaciones.length === 1 ? "Transaccion" : "Transacciones"}
           </span>
         </div>
 
@@ -430,7 +430,7 @@ export default function GestionInternacionesPage() {
                         </button>
                       </div>
                     </div>
-                  ) : (
+                  ) : internacion.fecha_hora_fin ? (<div></div>) : (
                     <div className="mt-4 pt-4 border-t border-slate-200 flex justify-end gap-3">
                       <button
                         onClick={() => setEditandoInternacion(internacion.id_internacion)}

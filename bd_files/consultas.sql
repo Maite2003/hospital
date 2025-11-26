@@ -137,7 +137,7 @@ CREATE OR REPLACE FUNCTION listar_internaciones()
 RETURNS TABLE(
     id_internacion INT,
     fecha_hora_inicio TIMESTAMP,
-    fecha_hora_fin TIMESTAMP
+    fecha_hora_fin TIMESTAMP,
 
     nro_dni VARCHAR,
     nombre_paciente VARCHAR,
