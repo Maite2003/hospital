@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { ShieldAlert } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { TipoListadoModificaciones } from '@/types/types';
 
 export default function AuditoriaPage() {

@@ -15,8 +15,8 @@ export async function crearInternacion(data: crearInternacionProps) {
         INSERT INTO INTERNACION (fecha_hora_inicio, nro_matricula, nro_dni)
         VALUES (
             NOW(), 
-            ${data.matriculaMedico},
-            ${data.dniPaciente} 
+            ${data.matricula_medico},
+            ${data.dni_paciente} 
         )
         RETURNING id_internacion;
       `;
@@ -31,8 +31,8 @@ export async function crearInternacion(data: crearInternacionProps) {
         VALUES (
             NOW(),
             ${newInternacionId},
-            ${data.habitacionId},
-            ${data.camaId}
+            ${data.habitacion_id},
+            ${data.cama_id}
         );
       `;
       
@@ -48,7 +48,7 @@ export async function crearInternacion(data: crearInternacionProps) {
 }
 
 export async function getTodasLasInternaciones() {
-  const internaciones: Internacion[] = await prisma.internacion.findMany({
+  const internaciones = await prisma.internacion.findMany({
     select: {
       id: true,
       fechaHoraFin: true,
@@ -57,7 +57,16 @@ export async function getTodasLasInternaciones() {
       nroDni: true,
     }
   });
-  return internaciones;
+  const internacionesFormateadas: Internacion[] = internaciones.map((internacion: { id: any; fechaHoraFin: any; fechaHoraInicio: any; nroMatricula: any; nroDni: any; }) => {
+    return {
+    id: internacion.id,
+    fecha_hora_fin: internacion.fechaHoraFin,
+    fecha_hora_inicio: internacion.fechaHoraInicio,
+    nro_matricula: internacion.nroMatricula,
+    nro_dni: internacion.nroDni
+  }
+  })
+  return internacionesFormateadas;
 }
 
 export async function getInternacion(id: number) {
@@ -73,7 +82,16 @@ export async function getInternacion(id: number) {
       nroDni: true,
     }
   });
-  return internacion;
+
+  const internacionFormateada = {
+    id: internacion.id,
+    fecha_hora_fin: internacion.fechaHoraFin,
+    fecha_hora_inicio: internacion.fechaHoraInicio,
+    nro_matricula: internacion.nroMatricula,
+    nro_dni: internacion.nroDni
+  }
+
+  return internacionFormateada;
 }
 
 export async function eliminarInternacion(id: number) {

@@ -43,11 +43,11 @@ export default function GestionInternacionesPage() {
       const [habitacionId, camaId] = values.camaSeleccionada.split('-');
 
       const infoInternacion: crearInternacion = {
-        dniPaciente: values.dniPaciente,
-        matriculaMedico: values.medicoMatricula,
-        habitacionId: Number(habitacionId),
-        camaId: Number(camaId),
-        fechaIngreso: values.fechaIngreso
+        dni_paciente: values.dniPaciente,
+        matricula_medico: values.medicoMatricula,
+        habitacion_id: Number(habitacionId),
+        cama_id: Number(camaId),
+        fecha_ingreso: values.fechaIngreso
       };
 
       try {

@@ -1,29 +1,29 @@
 
 export interface Persona {
-    nroDni: string,
+    nro_dni: string,
     nombre: string,
     apellido: string
 }
 
 export interface Paciente {
-    nroDni: string,
+    nro_dni: string,
     sexo: string,
-    fechaNac: Date | string,
+    fecha_nac: Date | string,
 }
 
 export interface Medico {
-    nroMatricula: string,
-    fechaIngreso: Date | string,
+    nro_matricula: string,
+    fecha_ingreso: Date | string,
     foto: string,
     cuil: string,
     cuit: string,
-    nroDni: string
+    nro_dni: string
 }
 
 export interface Comentario {
-    idInternacion: number,
-    idComentario: number,
-    fechaHora: Date | string,
+    id_dnternacion: number,
+    id_comentario: number,
+    fecha_hora: Date | string,
     descripcion: string,
     id_recorrido: number,
 }
@@ -37,28 +37,28 @@ export interface Recorrido {
 
 export interface Internacion {
     id: number,
-    fechaHoraInicio: Date | string,
-    fechaHoraFin: Date | string | null,
-    nroMatricula: string,
-    nroDni: string,
+    fecha_hora_inicio: Date | string,
+    fecha_hora_fin: Date | string | null,
+    nro_matricula: string,
+    nro_dni: string,
 }
 
 export interface Cama {
     id: number,
-    idHabitacion: number,
-    estaLibre: boolean,
+    id_habitacion: number,
+    esta_libre: boolean,
 }
 
 export interface Habitacion {
     id: number,
     piso: number,
     orientacion: string,
-    idSector: number,
+    id_sector: number,
 }
 
 export interface Sector {
     id: number,
-    nombreSector: string,
+    nombre_sector: string,
 }
 
 export interface Especialidad {
@@ -69,8 +69,8 @@ export interface Especialidad {
 export interface Usuario {
     username: string,
     password: string,
-    puedeModGuardia: boolean,
-    nroDni: string,
+    puede_mod_guardia: boolean,
+    nro_dni: string,
 }
 
 export interface UsuarioModificaGuardia {
@@ -123,15 +123,15 @@ export interface TipoListadoCamas {
 
 export interface TipoCamaConDetalle {
     id: number,
-    idHabitacion: number,
+    id_habitacion: number,
     habitacion: {
         piso: number,
         orientacion: string,
         sector: {
-            nombreSector: string,
+            nombre_sector: string,
         }
     }
-    estaLibre: boolean,
+    esta_libre: boolean,
 }
 
 export interface TipoFilasComentariosPorInternacion {
@@ -149,18 +149,18 @@ export interface TipoFilasComentariosPorInternacion {
 }
 
 export interface TipoComentario {
-    idComentario: number;
-    fechaHora: Date | string;
+    id_comentario: number;
+    fecha_hora: Date | string;
     descripcion: string;
-    nroMatricula: string;
+    nro_matricula: string;
     nombre_doctor: string;
 }
 
 export interface TipoListadoComentarios {
-  idInternacion: number;
-  fechaHoraInicio: Date | string;
-  fechaHoraFin: Date | string | null;
-  nroDni: string; 
+  id_internacion: number;
+  fecha_hora_inicio: Date | string;
+  fecha_hora_fin: Date | string | null;
+  nro_dni: string; 
   nombre: string;
   apellido: string;
   comentarios: TipoComentario[]
@@ -168,17 +168,17 @@ export interface TipoListadoComentarios {
 
 // INTERNACIONES TRANSACCIONES
  export interface crearInternacion {
-    dniPaciente: string;
-    matriculaMedico: string;
-    camaId: number;
-    habitacionId: number;
-    fechaIngreso: Date | string;
+    dni_paciente: string;
+    matricula_medico: string;
+    cama_id: number;
+    habitacion_id: number;
+    fecha_ingreso: Date | string;
 }
 
 export interface editarInternacion {
-    idInternacion: number,
-    matriculaMedico?: string;
-    camaId?: number;
-    habitacionId?: number;
-    fechaSalida?: Date | string;
+    id_internacion: number,
+    matricula_medico?: string;
+    cama_id?: number;
+    habitacion_id?: number;
+    fecha_salida?: Date | string;
 }

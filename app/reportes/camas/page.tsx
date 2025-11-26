@@ -32,7 +32,7 @@ export default function ReporteCamasPage() {
 
   function calcularResumenCamas(camas: TipoCamaConDetalle[]): ResumenCamas {
     return camas.reduce((acc, cama) => {
-      const sectorName = cama.habitacion.sector.nombreSector;
+      const sectorName = cama.habitacion.sector.nombre_sector;
 
       // 1. Inicialización: Si el sector no está en el acumulador, lo creamos.
       if (!acc[sectorName]) {
@@ -42,7 +42,7 @@ export default function ReporteCamasPage() {
       // 2. Acumulación:
       acc[sectorName].total += 1; // Siempre sumamos al total
 
-      if (cama.estaLibre) {
+      if (cama.esta_libre) {
         acc[sectorName].libres += 1; // Sumamos a libres si esta_libre es true
       } else {
         acc[sectorName].ocupadas += 1; // Sumamos a ocupadas si esta_libre es false
@@ -62,7 +62,7 @@ export default function ReporteCamasPage() {
 
   // 1. Obtener lista única de sectores para el dropdown
   const sectors = useMemo(() => {
-    const unique = Array.from(new Set(camas.map(c => c.habitacion.sector.nombreSector)));
+    const unique = Array.from(new Set(camas.map(c => c.habitacion.sector.nombre_sector)));
     return ['Todos', ...unique.sort()]; // Ordenamos los sectores alfabéticamente
   }, [camas]);
 
@@ -74,27 +74,27 @@ export default function ReporteCamasPage() {
 
     // A. Filtro por Dropdown de Sector
     if (filterSector !== 'Todos') {
-      result = result.filter(c => c.habitacion.sector.nombreSector === filterSector);
+      result = result.filter(c => c.habitacion.sector.nombre_sector === filterSector);
     }
 
     // B. Filtro por búsqueda de texto (opcional, por si quieren buscar Nro Habitación)
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(c => 
-        c.idHabitacion.toString().includes(term) || 
-        c.habitacion.sector.nombreSector.toLowerCase().includes(term)
+        c.id_habitacion.toString().includes(term) || 
+        c.habitacion.sector.nombre_sector.toLowerCase().includes(term)
       );
     }
 
     // C. Ordenamiento por defecto: Sector -> Habitación -> Cama
     result.sort((a, b) => {
       // Criterio 1: Sector (A-Z)
-      if (a.habitacion.sector.nombreSector < b.habitacion.sector.nombreSector) return -1;
-      if (a.habitacion.sector.nombreSector > b.habitacion.sector.nombreSector) return 1;
+      if (a.habitacion.sector.nombre_sector < b.habitacion.sector.nombre_sector) return -1;
+      if (a.habitacion.sector.nombre_sector > b.habitacion.sector.nombre_sector) return 1;
       
       // Criterio 2: Número de Habitación (Ascendente)
-      if (a.idHabitacion !== b.idHabitacion) {
-        return a.idHabitacion - b.idHabitacion;
+      if (a.id_habitacion !== b.id_habitacion) {
+        return a.id_habitacion - b.id_habitacion;
       }
 
       // Criterio 3: Nro de Cama
@@ -173,14 +173,14 @@ export default function ReporteCamasPage() {
             {filteredAndSortedCamas.map((cama, idx) => {
               console.log(cama);
               return (
-              <tr key={`${cama.idHabitacion}-${cama.id}-${idx}`} className="hover:bg-slate-50 transition-colors">
+              <tr key={`${cama.id_habitacion}-${cama.id}-${idx}`} className="hover:bg-slate-50 transition-colors">
                 <td className="p-4">
                   <span className="px-2 py-1 bg-slate-100 rounded text-xs font-medium text-slate-600">
-                    {cama.habitacion.sector.nombreSector}
+                    {cama.habitacion.sector.nombre_sector}
                   </span>
                 </td>
                 <td className="p-4 font-bold text-slate-700">
-                  Hab. {cama.idHabitacion}
+                  Hab. {cama.id_habitacion}
                 </td>
                 <td className="p-4 text-slate-500 text-xs">
                   Piso {cama.habitacion.piso} • {cama.habitacion.orientacion === 'N' ? 'Norte' : cama.habitacion.orientacion === 'S' ? 'Sur' : cama.habitacion.orientacion === 'E' ? 'Este' : 'Oeste'}
@@ -189,7 +189,7 @@ export default function ReporteCamasPage() {
                   Cama {cama.id}
                 </td>
                 <td className="p-4">
-                  {cama.estaLibre ? (
+                  {cama.esta_libre ? (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
                       Libre
                     </span>

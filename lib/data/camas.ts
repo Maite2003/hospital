@@ -9,7 +9,7 @@ export async function getReporteCamasLibres() {
 }
 
 export async function getTodasLasCamas() {
-  const camasConDetalles: TipoCamaConDetalle[] = await prisma.cama.findMany({
+  const camasConDetalles = await prisma.cama.findMany({
     select: {
       id: true,
       estaLibre: true,
@@ -27,5 +27,19 @@ export async function getTodasLasCamas() {
       },
     },
   });
-  return camasConDetalles;
+
+  const camasResultado: TipoCamaConDetalle[] = camasConDetalles.map((cama: { id: any; estaLibre: any; idHabitacion: any; habitacion: { piso: any; orientacion: any; sector: { nombreSector: any; }; }; }) => {
+    return {
+      id: cama.id,
+      esta_libre: cama.estaLibre,
+      id_habitacion: cama.idHabitacion,
+      habitacion: {
+        piso: cama.habitacion.piso,
+        orientacion: cama.habitacion.orientacion,
+        sector: {nombre_sector: cama.habitacion.sector.nombreSector} 
+      }
+    }
+  })
+
+  return camasResultado;
 }

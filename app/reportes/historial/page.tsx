@@ -87,19 +87,19 @@ export default function HistorialPacientesPage() {
         <div className="space-y-4">
           <div>
             <h3 className="font-bold text-blue-900">{internacion.apellido}, {internacion.nombre}</h3>
-            <p className="text-xs text-slate-500">DNI: {internacion.nroDni} | Int. #{internacion.idInternacion}</p>
+            <p className="text-xs text-slate-500">DNI: {internacion.nro_dni} | Int. #{internacion.id_internacion}</p>
           </div>
           {internacion.comentarios.map((comentario, index) => (
              <div key={index} className="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
                <div className="flex justify-between items-start">
                  <span className="text-xs font-mono text-slate-400">
-                   {new Date(comentario.fechaHora).toLocaleString()}
+                   {new Date(comentario.fecha_hora).toLocaleString()}
                  </span>
                </div>
                <div className="mt-3 p-3 bg-slate-50 rounded border border-slate-100">
                  <p className="text-slate-800 italic">"{comentario.descripcion}"</p>
                </div>
-               <p className="text-xs text-slate-400 mt-2 font-medium text-right">Dr/a. {comentario.nombre_doctor} ({comentario.nroMatricula})</p>
+               <p className="text-xs text-slate-400 mt-2 font-medium text-right">Dr/a. {comentario.nombre_doctor} ({comentario.nro_matricula})</p>
              </div>
           ))}
         </div>
