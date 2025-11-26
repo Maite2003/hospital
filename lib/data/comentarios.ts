@@ -24,18 +24,18 @@ export async function getReporteComentariosInternacion(id_internacion: number) {
   // La idea es devolver los campos comunes una vez y despues la lista de comentarios
   if (filas.length == 0) return null;
   const result: TipoListadoComentarios = {
-    idInternacion: filas[0].id_internacion,
-    fechaHoraInicio: filas[0].fecha_hora_inicio_int,
-    fechaHoraFin: filas[0].fecha_hora_fin_int,
-    nroDni: filas[0].nro_dni,
+    id_internacion: filas[0].id_internacion,
+    fecha_hora_fin: filas[0].fecha_hora_inicio_int,
+    fecha_hora_inicio: filas[0].fecha_hora_fin_int,
+    nro_dni: filas[0].nro_dni,
     nombre: filas[0].nombre,
     apellido: filas[0].apellido,
     comentarios: filas.map((fila:TipoFilasComentariosPorInternacion) => {
       const comentario: TipoComentario = {
-        idComentario: fila.id_comentario,
-        fechaHora: fila.fecha_hora_comentario,
+        id_comentario: fila.id_comentario,
+        fecha_hora: fila.fecha_hora_comentario,
         descripcion: fila.descripcion,
-        nroMatricula: fila.nro_matricula,
+        nro_matricula: fila.nro_matricula,
         nombre_doctor: fila.nombre_doctor
       }
       return comentario;
