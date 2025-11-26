@@ -43,6 +43,29 @@ export interface Internacion {
     nro_dni: string,
 }
 
+export interface InternacionActiva {
+    id_internacion: number,
+    fecha_hora_inicio: Date | string,
+
+    nro_dni: string,
+    nombre_paciente: string,
+    apellido_paciente: string,
+    sexo: string,
+    fecha_nac: Date,
+
+    nro_matricula: string,
+    nombre_medico: string,
+    apellido_medico: string,
+
+    id_cama:number,
+    id_habitacion:number,
+    piso: number,
+    orientacion: string,
+    nombre_sector: string,
+
+    fecha_hora_asignacion: Date,
+}
+
 export interface Cama {
     id: number,
     id_habitacion: number,

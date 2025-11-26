@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { crearInternacion as crearInternacionProps, Internacion } from '@/types/types';
+import { crearInternacion as crearInternacionProps, Internacion, InternacionActiva } from '@/types/types';
 import { prisma } from '@/lib/prisma';
 
 interface InternacionResult {
@@ -47,26 +47,27 @@ export async function crearInternacion(data: crearInternacionProps) {
   }
 }
 
+// export async function getTodasLasInternaciones() {
+//  const internaciones: Internacion[] = await prisma.internacion.findMany({
+//    select: {
+//      id: true,
+//      fechaHoraFin: true,
+//      fechaHoraInicio:true,
+//      nroMatricula: true,
+//      nroDni: true,
+//    }
+//  });
+//  return internaciones;
+//}
+
 export async function getTodasLasInternaciones() {
-  const internaciones = await prisma.internacion.findMany({
-    select: {
-      id: true,
-      fechaHoraFin: true,
-      fechaHoraInicio:true,
-      nroMatricula: true,
-      nroDni: true,
+    const sqlQuery = Prisma.sql`SELECT * FROM listar_internaciones_activas()`;
+    try {
+      const result = await prisma.$queryRaw<InternacionActiva[]>(sqlQuery);
+      return result;
+    } catch {
+      return null;
     }
-  });
-  const internacionesFormateadas: Internacion[] = internaciones.map((internacion: { id: any; fechaHoraFin: any; fechaHoraInicio: any; nroMatricula: any; nroDni: any; }) => {
-    return {
-    id: internacion.id,
-    fecha_hora_fin: internacion.fechaHoraFin,
-    fecha_hora_inicio: internacion.fechaHoraInicio,
-    nro_matricula: internacion.nroMatricula,
-    nro_dni: internacion.nroDni
-  }
-  })
-  return internacionesFormateadas;
 }
 
 export async function getInternacion(id: number) {
