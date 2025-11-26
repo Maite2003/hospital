@@ -83,7 +83,7 @@ export async function getInternacion(id: number) {
       nroDni: true,
     }
   });
-
+  if (!internacion) return {}
   const internacionFormateada = {
     id: internacion.id,
     fecha_hora_fin: internacion.fechaHoraFin,
