@@ -25,8 +25,8 @@ export async function getReporteComentariosInternacion(id_internacion: number) {
   if (filas.length == 0) return null;
   const result: TipoListadoComentarios = {
     id_internacion: filas[0].id_internacion,
-    fecha_hora_fin: filas[0].fecha_hora_inicio_int,
-    fecha_hora_inicio: filas[0].fecha_hora_fin_int,
+    fecha_hora_fin: filas[0].fecha_hora_fin,
+    fecha_hora_inicio: filas[0].fecha_hora_inicio,
     nro_dni: filas[0].nro_dni,
     nombre: filas[0].nombre,
     apellido: filas[0].apellido,

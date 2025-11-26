@@ -160,7 +160,7 @@ export interface TipoCamaConDetalle {
 export interface TipoFilasComentariosPorInternacion {
     id_internacion: number;
     fecha_hora_inicio_int: Date | string;
-    fecha_hora_fin_int: Date | string | null;
+    fecha_hora_fin_int?: Date | string | null;
     nro_dni: string;
     nombre: string;
     apellido: string;
@@ -182,7 +182,7 @@ export interface TipoComentario {
 export interface TipoListadoComentarios {
   id_internacion: number;
   fecha_hora_inicio: Date | string;
-  fecha_hora_fin: Date | string | null;
+  fecha_hora_fin?: Date | string | null;
   nro_dni: string; 
   nombre: string;
   apellido: string;
