@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { crearInternacion, getTodasLasInternaciones } from "@/lib/data/internaciones";
-import { crearInternacion as crearInternacionProps, Internacion, InternacionActiva } from '@/types/types';
+import { crearInternacion as crearInternacionProps, InternacionFront } from '@/types/types';
 
 export async function POST(request: Request) {
   try {
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const internaciones: InternacionActiva[] | null = await getTodasLasInternaciones();
+    const internaciones: InternacionFront[] | null = await getTodasLasInternaciones();
     return NextResponse.json({ internaciones }, {status: 200});
   } catch (error) {
     return NextResponse.json(

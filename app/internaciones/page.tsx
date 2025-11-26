@@ -4,20 +4,12 @@ import { useEffect, useState } from "react"
 import { useFormik } from "formik"
 import * as Yup from "yup"
 import { UserPlus, Activity, BedDouble, RefreshCw, XCircle, Calendar, Stethoscope, User, MapPin } from "lucide-react"
-import type { TipoListadoCamas, crearInternacion, Internacion, InternacionActiva } from "@/types/types"
+import type { TipoListadoCamas, crearInternacion, Internacion, InternacionFront } from "@/types/types"
 import axios from "axios"
-
-interface InternacionConDetalles extends Internacion {
-  pacienteNombre?: string
-  pacienteApellido?: string
-  medicoNombre?: string
-  medicoApellido?: string
-  camaActual?: TipoListadoCamas
-}
 
 export default function GestionInternacionesPage() {
   const [camasDisponibles, setCamasDisponibles] = useState<TipoListadoCamas[]>([])
-  const [internacionesActivas, setInternacionesActivas] = useState<InternacionActiva[]>([])
+  const [internaciones, setInternacion] = useState<InternacionFront[]>([])
   const [editandoInternacion, setEditandoInternacion] = useState<number | null>(null)
   const [nuevaCamaSeleccionada, setNuevaCamaSeleccionada] = useState<string>("")
 
@@ -51,7 +43,7 @@ export default function GestionInternacionesPage() {
 
         // Get patient and doctor names
         const internacionesConDetalles = await Promise.all(
-          activas.map(async (int: InternacionActiva) => {
+          activas.map(async (int: InternacionFront) => {
             try {
               const [pacienteRes, medicoRes] = await Promise.all([
                 axios.get(`/api/personas/${int.nro_dni}`),
@@ -76,7 +68,7 @@ export default function GestionInternacionesPage() {
           }),
         )
 
-        setInternacionesActivas(internacionesConDetalles)
+        setInternacion(internacionesConDetalles)
       }
     } catch (error) {
       console.error("Error al cargar internaciones activas:", error)
@@ -291,22 +283,26 @@ export default function GestionInternacionesPage() {
       <div className="max-w-6xl mx-auto mt-8 bg-white p-8 rounded-xl shadow-sm border border-slate-200">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-            <BedDouble className="text-indigo-600" /> Internaciones Activas
+            <BedDouble className="text-indigo-600" /> Internaciones
           </h2>
           <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">
-            {internacionesActivas.length} {internacionesActivas.length === 1 ? "Activa" : "Activas"}
+            {internaciones.length} {internaciones.length === 1 ? "Activa" : "Activas"}
           </span>
         </div>
 
-        {internacionesActivas.length === 0 ? (
+        {internaciones.length === 0 ? (
           <div className="text-center py-12">
             <BedDouble className="w-16 h-16 mx-auto text-slate-300 mb-4" />
-            <p className="text-slate-500 text-lg">No hay internaciones activas</p>
+            <p className="text-slate-500 text-lg">No hay internaciones</p>
           </div>
         ) : (
           <div className="grid gap-6">
-            {internacionesActivas.map((internacion) => {
-              const diasInternado = calcularDiasInternacion(internacion.fecha_hora_inicio)
+            {internaciones.map((internacion) => {
+              let displayDias = 'La internacion ya finalizo';
+              if (!internacion.fecha_hora_fin) {
+                const diasInternado = calcularDiasInternacion(internacion.fecha_hora_inicio)
+                displayDias = `${diasInternado} ${diasInternado === 1 ? "día" : "días"} internado`
+              }
 
               return (
                 <div
@@ -318,13 +314,19 @@ export default function GestionInternacionesPage() {
                     <div>
                       <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                         Internación #{internacion.id_internacion}
+                        {internacion.fecha_hora_fin ? 
+                        <span className="text-xs font-normal bg-red-100 text-red-700 px-2 py-1 rounded-full">
+                          Finalizada
+                        </span>
+                        :
                         <span className="text-xs font-normal bg-green-100 text-green-700 px-2 py-1 rounded-full">
                           Activa
                         </span>
+                        }
                       </h3>
                       <p className="text-sm text-slate-500 mt-1 flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5" />
-                        {diasInternado} {diasInternado === 1 ? "día" : "días"} internado
+                        {displayDias}
                       </p>
                     </div>
                     <div className="text-right">

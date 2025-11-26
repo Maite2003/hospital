@@ -43,9 +43,10 @@ export interface Internacion {
     nro_dni: string,
 }
 
-export interface InternacionActiva {
+export interface InternacionFront {
     id_internacion: number,
     fecha_hora_inicio: Date | string,
+    fecha_hora_fin: Date | string | null,
 
     nro_dni: string,
     nombre_paciente: string,

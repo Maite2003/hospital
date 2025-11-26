@@ -61,7 +61,7 @@ export async function crearInternacion(data: crearInternacionProps) {
 //}
 
 export async function getTodasLasInternaciones() {
-    const sqlQuery = Prisma.sql`SELECT * FROM listar_internaciones_activas()`;
+    const sqlQuery = Prisma.sql`SELECT * FROM listar_internaciones()`;
     try {
       const result = await prisma.$queryRaw<InternacionActiva[]>(sqlQuery);
       return result;

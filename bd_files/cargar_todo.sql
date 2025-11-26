@@ -117,11 +117,7 @@ CREATE TABLE USUARIO_MODIFICA_GUARDIA (
     id_guardia INT NOT NULL,
     fecha_hora TIMESTAMP NOT NULL,
     descripcion TEXT,
-    PRIMARY KEY (
-        id_modificacion,
-        username,
-        id_guardia
-    ),
+    PRIMARY KEY (id_modificacion, username, id_guardia),
     FOREIGN KEY (username) REFERENCES USUARIO (username),
     FOREIGN KEY (id_guardia) REFERENCES GUARDIA (id_guardia)
 );
@@ -234,7 +230,7 @@ CREATE TABLE RECORRIDO (
     id_recorrido SERIAL PRIMARY KEY,
     fecha DATE NOT NULL,
     id_ronda INT NOT NULL,
-    nro_matricula VARCHAR(8) NOT NULL,
+    nro_matricula VARCHAR(4) NOT NULL,
     FOREIGN KEY (id_ronda) REFERENCES RONDA (id_ronda),
     FOREIGN KEY (nro_matricula) REFERENCES MEDICO (nro_matricula)
 );
@@ -255,7 +251,7 @@ CREATE TABLE COMENTARIO (
     id_internacion INT NOT NULL,
     id_comentario SERIAL,
     fecha_hora TIMESTAMP NOT NULL DEFAULT CURRENT_DATE,
-    CHECK (fecha_hora <= CURRENT_DATE),
+    CHECK (fecha_hora <= CURRENT_DATE), 
     descripcion TEXT,
     id_recorrido INT NOT NULL,
     PRIMARY KEY (id_internacion, id_comentario),
@@ -268,7 +264,7 @@ CREATE TABLE COMENTARIO (
 -- ===========================================
 
 CREATE TABLE VACACION (
-    nro_matricula VARCHAR(8) NOT NULL,
+    nro_matricula VARCHAR(4) NOT NULL,
     id_vacacion SERIAL,
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE NOT NULL,
