@@ -19,8 +19,7 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const internaciones: InternacionActiva[] = await getTodasLasInternaciones();
-
+    const internaciones: InternacionActiva[] | null = await getTodasLasInternaciones();
     return NextResponse.json({ internaciones }, {status: 200});
   } catch (error) {
     return NextResponse.json(

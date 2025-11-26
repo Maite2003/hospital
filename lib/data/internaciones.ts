@@ -66,7 +66,7 @@ export async function getTodasLasInternaciones() {
       const result = await prisma.$queryRaw<InternacionActiva[]>(sqlQuery);
       return result;
     } catch {
-      return null;
+      return [];
     }
 }
 
